@@ -22,7 +22,7 @@ Owners: **Abhijeet** (thegoodengineer) = AWS · **Chirag** (Chirag6722) = backen
 ## Should
 
 - [x] **UI rounds with screenshots** (#15). Files: `site/*`. Done: screenshots at 1440, 1024 and 400 px reviewed and fixed; no horizontal scroll; loading, empty and error states designed.
-- [x] **README for judges.** Files: `README.md`. Done: architecture, `make local`, test count from a real run. The demo GIF, live URL and video link are added on Sunday, with the recording.
+- [x] **README for judges.** Files: `README.md`, `docs/img/demo.gif`. Done: GIF at the top, architecture, `make local`, test count from a real run. Live URL and video link get filled in on Sunday.
 - [ ] **Deploy from CI on merge to main** (OIDC role, no stored keys). Files: `.github/workflows/deploy.yml`. Done: a merge updates the live site.
 - [ ] **Blog on AWS Builder Center** (enters the top-5 blogs prize). Files: `docs/BLOG.md` (drafted). Done: published and linked in the submission.
 
