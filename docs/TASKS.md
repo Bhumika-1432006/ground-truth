@@ -4,8 +4,8 @@ Every task is a GitHub issue. This file is the map; the issues hold the checklis
 
 ## Abhijeet (thegoodengineer): AWS
 
-| # | # | Task | P | Day |
-|---|---|---|---|---|
+| # | Task | P | Day |
+|---|---|---|---|
 | 1 | AWS account, profile, OpenAQ key in SSM (us-east-1) | P0 | Thu |
 | 2 | Walking skeleton: S3 + CloudFront + one Lambda, public URL | P0 | Thu |
 | 3 | Hourly ingest: EventBridge -> Lambda -> JSON in S3 | P0 | Fri |
@@ -16,8 +16,8 @@ Every task is a GitHub issue. This file is the map; the issues hold the checklis
 
 | # | Task | P | Day |
 |---|---|---|---|
-| 8 | Scorer: physics, neighbour and history checks in pure Python, writing the JSON contract | P0 | Fri |
 | 7 | Backfill: seed the 28-day hourly cache from the public archive | P0 | Thu-Fri |
+| 8 | Scorer: physics, neighbour and history checks in pure Python, writing the JSON contract | P0 | Fri |
 | 9 | Tests + CI: planted-anomaly test, physics unit tests, contract test, GitHub Actions | P0 | Fri |
 | 10 | Video: script Thursday, render Saturday (Hyperframes + edge-tts) | P1 | Thu -> Sat |
 | 11 | Write-up and submission, submitted Saturday night | P0 | Sat |
