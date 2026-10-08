@@ -310,7 +310,8 @@
           onBackgroundClick: () => { if (!immersive) enterImmersive(); },
         });
       } catch (e) {
-        $("#map").innerHTML = `<div class="empty"><h2>The 3D view couldn't start</h2><p>Your browser may not support WebGL. Every monitor is still listed in the panel and in the answers above.</p></div>`;
+        const why = /webgl/i.test(e.message) ? "Your browser doesn't support WebGL." : "The 3D scene failed to load.";
+        $("#map").innerHTML = `<div class="empty"><h2>The 3D view couldn't start</h2><p>${why} Every monitor is still listed in the panel and in the answers above.</p></div>`;
         return;
       }
       if (selected != null) view.select(selected);

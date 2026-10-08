@@ -203,10 +203,21 @@ async function init(container, { stations, reading, makeMarker, onPick, onBackgr
   scene.background = new THREE.Color(FOG);
   scene.fog = new THREE.Fog(FOG, 180, 820);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  // Detect WebGL support before creating the renderer; throw so app.js can show the fallback.
+  const testCanvas = document.createElement("canvas");
+  const gl = testCanvas.getContext("webgl2") || testCanvas.getContext("webgl") || testCanvas.getContext("experimental-webgl");
+  if (!gl) throw new Error("WebGL not supported");
+
+  // Use low-power GPU on battery or mobile to avoid draining the battery.
+  const powerPref = navigator.getBattery ? "low-power" : "default";
+  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: powerPref });
+  // Cap pixel ratio at 1.5 on low-end devices (saves GPU fill rate).
+  const dpr = Math.min(devicePixelRatio, window.innerWidth < 600 ? 1.5 : 2);
+  renderer.setPixelRatio(dpr);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  // Disable shadow maps on mobile to improve frame rate.
+  const isMobile = window.innerWidth < 600;
+  renderer.shadowMap.enabled = !isMobile; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   container.appendChild(renderer.domElement);
   renderer.domElement.setAttribute("aria-hidden", "true");
 
@@ -253,9 +264,14 @@ async function init(container, { stations, reading, makeMarker, onPick, onBackgr
   let tween = null, visible = true, immersive = false, first = true;
   new IntersectionObserver(([en]) => { visible = en.isIntersecting; }).observe(container);
   const v = new THREE.Vector3();
-  const loop = () => {
+  const TARGET_FPS = isMobile ? 30 : 60;
+  const FRAME_MS = 1000 / TARGET_FPS;
+  let lastFrame = 0;
+  const loop = (now = 0) => {
     requestAnimationFrame(loop);
     if (!visible && !immersive) return;
+    if (now - lastFrame < FRAME_MS - 1) return; // throttle to TARGET_FPS
+    lastFrame = now;
     if (tween) {
       const t = Math.min(1, (performance.now() - tween.t0) / tween.ms), e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
       controls.target.lerpVectors(tween.fromT, tween.toT, e); camera.position.lerpVectors(tween.fromC, tween.toC, e);
