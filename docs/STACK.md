@@ -11,9 +11,9 @@ Reuse what worked on Leash. Nothing new unless it saves a day.
 | Secrets | SSM SecureString `/ground-truth/openaq-key` | #1. Never in the repo. |
 | Storage + hosting | One S3 bucket (`index.html`, `assets/`, `data/`) behind CloudFront | #2. Falls back to the S3 website endpoint if CloudFront is blocked on the plan. |
 | Data in | OpenAQ API v3 `/sensors/{id}/measurements` (raw 15-min readings, grouped into IST hours by our code) + public archive `s3://openaq-data-archive` (backfill, us-east-1) | The archive is about 4 days behind, so the API covers the gap. |
-| Front end | Vanilla HTML/CSS/JS, no build step | Leash paper design system (tokens, type, cards). One `index.html`, one `app.js`, one `style.css`. |
-| Map | Leaflet 1.9.4 (cdnjs) + OSM tiles | Light and well known. Show attribution. |
-| Chart | Chart.js 4.4.x (cdnjs, exact version pinned) | Hour-of-day gap line, neighbour band, 11-17 window shaded. |
+| Front end | Vanilla HTML/CSS/JS, no build step | Own design system in `site/theme.css`, visually referenced from neatlogs.com: silver fog hero, dark product window, Geist + Geist Mono. One `index.html`, one `app.js`, one `theme.css`. |
+| Map | Leaflet 1.9.4 (vendored from npm) + CARTO dark tiles | Light and well known. Attribution shown. |
+| Chart | Chart.js 4.4.1 (vendored from npm) | Hour-of-day gap: last 7 vs 28 days, 11-17 window shaded, table view. |
 | Tests | pytest. Planted-anomaly test + physics unit tests + JSON contract test | Run in CI on every PR. |
 | CI/CD | GitHub Actions: `pytest` on PR; `sam deploy` on merge to main (OIDC role, no long-lived keys) | Copied from Leash. |
 | Video | Hyperframes (HTML -> video) + edge-tts voice-over | Scripted from day 1 so it isn't rushed on Sunday. |

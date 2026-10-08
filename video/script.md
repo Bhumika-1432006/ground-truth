@@ -1,39 +1,43 @@
 # Video script (issue #10)
 
-Target 2:40, hard limit 3:00. 1920x1080. Voice: edge-tts `en-IN-NeerjaNeural`, rate +5%. The voice-over text alone is in `voiceover.txt` (one line per beat) so it can be rendered and timed separately.
+**Style.** Calm, factual, a little cinematic: a morning decision in Delhi, then the evidence. The palette and fonts are the site's own (paper `#f6f6f3`, ink `#111`, one blue `#2457d6`, state colours only for state; Inter + JetBrains Mono). Dark scenes for the hook and the close, paper scenes for the product. The music is a slow, warm ambient bed under the voice, with a swell at the title and at the proof, fading on the close.
 
-Rules: every number on screen or in the voice-over traces to `spike/RESULTS.md`, `tests/` or the live `data/latest.json`. Never say or show "fake", "tampered" or "sprayed" about a station. We show numbers that don't add up.
+**Rules.** The film is under 3:00 and never sped up; if it runs long, cut words. Every number spoken or shown comes from the repo or the live data: the sources are in the last column. Never say or show "fake", "tampered" or "sprayed" about a station. Numbers are written the way they are spoken.
 
-| # | Time | On screen | Voice-over |
-|---|---|---|---|
-| 1 | 0:00-0:12 | Black. White text, typed: "Delhi, October 2025." Cut to a headline still: tankers near the Anand Vihar monitor (credit the outlet on screen). | Last October, water tankers were filmed near one of Delhi's air-quality monitors. |
-| 2 | 0:12-0:24 | Grid of station names fading in, then a single big number: "PM2.5 = 182". | Delhi makes real decisions on these numbers: school closures, construction bans. But a published number tells you nothing about the station behind it. |
-| 3 | 0:24-0:34 | Title card: **Ground Truth**. Subtitle: "Which of Delhi's air-quality numbers can you trust?" | So we built Ground Truth. Every monitor, checked three ways, every hour. |
-| 4 | 0:34-0:52 | Live site, map loads, markers in three states. Hover the legend. | Physics: can this reading even be real? Neighbours: does it agree with the stations around it? History: has it suddenly changed against itself? |
-| 5 | 0:52-1:12 | Click Vikas Sadan (`#301`). Physics card highlighted. | Some stations fail the first test. In October and November 2025, Vikas Sadan in Gurugram reported more fine dust than total dust in 31 percent of hours. That's physically impossible. |
-| 6 | 1:12-1:42 | Click Anand Vihar (`#235`). Hour-of-day chart draws in; shade 11:00-17:00. | Here's Anand Vihar against its four nearest neighbours, hour by hour. At night it reads about 29 percent higher. Between 11 and 5, only 9 percent. That looks like spraying. But every polluted hotspot does this, because daytime air mixes. And the dip didn't change after the video. So we don't flag it, and we say so. |
-| 7 | 1:42-2:02 | Terminal: `pytest -q tests` runs; zoom on `test_every_quiet_station_is_caught` going green. Overlay: "40% daytime drop planted → flagged 30/30". | How do we know the checks work? We plant a fake 40 percent daytime drop in real data. It gets caught at every station we tried, and doesn't spill onto its neighbours. |
-| 8 | 2:02-2:20 | Architecture diagram (EventBridge → Lambda → S3 → CloudFront), then the 15 s console clip from #4. | On AWS, EventBridge triggers a Lambda every hour. It pulls new readings from OpenAQ, runs the checks, and writes JSON to S3, served through CloudFront. |
-| 9 | 2:20-2:40 | Back to the map. Text: "A flag means the numbers don't add up. Not that anyone cheated." Then the URL and the repo. | A flag doesn't accuse anyone. It says: these numbers don't add up, look closer. Ground Truth. Open data, open code. |
+Scene kinds: `scene: <id>` = an HTML scene in `scenes/scenes.html`; `CAPTURE <step>` = a segment of the site's `?demo=1` tour; `terminal: <file>` = real CLI output typed on screen; `SUPPLY <file>` = a shot only a human can record.
 
-## Shot list for Saturday
+| # | Scene | On screen | Narration | Source |
+|---|---|---|---|---|
+| 1 | scene: hook | Dark. A phone lights up: 7:40, "Air quality near you: PM2.5 10". A school bell icon. | Seven forty in the morning. A principal in East Delhi checks the air before assembly. The nearest monitor says it's fine. | - |
+| 2 | scene: problem | Three questions type on, one by one: "Is it working?" "Is it broken?" "Is someone gaming it?" | But is that monitor working? Last October, water tankers were filmed near a Delhi monitor. A published number tells you nothing about the station behind it. | news, Oct 2025 |
+| 3 | scene: title | The GT mark pulses. "Ground Truth". "Which air-quality numbers can you trust?" | This is Ground Truth. It checks every monitor in Delhi and the NCR, every hour, and tells you in plain words whether its number adds up. | - |
+| 4 | scene: checks | Three cards build: Physics, Neighbours, History, each with its question. | Three questions. Physics: can this reading even be real? Neighbours: does it agree with the four stations around it? History: has it suddenly changed? | `src/scorer.py` |
+| 5 | CAPTURE start | The live site: hero, live example, stats, then the map. | Here are fifty-two stations, each with a plain answer. | `data/latest.json` |
+| 6 | CAPTURE physics | Vikas Sadan opens; the Physics card is outlined. | Vikas Sadan, in Gurugram, reports more fine dust than total dust. That can't happen, so it fails the physics check. | `data/latest.json` |
+| 7 | CAPTURE chart | Anand Vihar; the hour-of-day chart, the 11-to-5 band shaded. | Anand Vihar, against its neighbours, hour by hour. Its dust dips between eleven and five. That looks like spraying. But every polluted hotspot does this, because daytime air mixes. So we don't flag it. | `spike/RESULTS.md` |
+| 8 | CAPTURE history | Jahangirpuri; the History card outlined; then "this station vs 4 nearest now". | Jahangirpuri's daytime humidity jumped against its own last three weeks. Worth a look, not proof. And when a station is in doubt, we show what its neighbours read right now. | `data/latest.json` |
+| 9 | scene: proof | Huge "30 / 30". Under it: "planted daytime drops caught". | How do we know it works? We planted a forty percent daytime drop in real data, one station at a time. It was caught thirty times out of thirty. | `docs/LEARNINGS.md` |
+| 10 | terminal: pytest.txt | The real `pytest` run typing out, ending green. | Every claim has a test, and the tests run on every change. | `make test` |
+| 11 | scene: arch | The architecture: EventBridge, Lambda, Parameter Store, OpenAQ, S3, CloudFront light up as named. | On AWS, EventBridge runs a Lambda every hour. It reads new data from OpenAQ, runs the checks, and writes the results to S3, served through CloudFront. One SAM template deploys it all. | `template.yaml` |
+| 12 | SUPPLY console.mp4 | 10-15 s of the real AWS console: Lambda invocations, S3 `data/` objects, CloudFront. | And here it is, running. | issue #4 |
+| 13 | scene: learned | Three lessons build line by line. | What we learned. The archive runs four days behind, so live data needs the API. The API's hours are half an hour off India's. And our strongest result is the one we didn't claim. | `docs/LEARNINGS.md` |
+| 14 | scene: close | Dark. GT mark, "Ground Truth", the URL and the repo. | Ground Truth. A flag means the numbers don't add up. Not that anyone cheated. | - |
 
-- [ ] Map at 1920x1080, browser zoom 100%, no bookmarks bar. URL hash `#301`, then `#235`.
-- [ ] Terminal with a large font: `pytest -q tests -k "quiet or planted"`.
-- [ ] The architecture diagram as one SVG (reuse the Leash diagram style).
-- [ ] Console clip from #4.
-- [ ] Headline still for beat 1: use a screenshot with the outlet's name visible and credit it on screen.
+## Music cue
 
-## Check before rendering
+The bed runs under the narration at about -22 dB, ducked further whenever the voice speaks. It swells gently at scene 3 (title) and scene 9 (proof), and fades out over the last 3 seconds of scene 14. Default: `video/music.py` generates a procedural ambient bed (numpy, no licence needed). To use a CC BY track instead, save it as `video/music.mp3` and credit it in the YouTube description.
 
-- [ ] Beat 5's 31% is the Oct-Nov 2025 figure (`docs/LEARNINGS.md`). If the live site shows a different period, say "last October and November", not "this week".
-- [ ] Beat 6's 29% and 9% come from `spike/RESULTS.md`. The live chart covers 28 days, so if its numbers differ, record from a build of the Oct-Nov 2025 data or change the voice-over to the live numbers.
-- [ ] Beat 7: the 30/30 figure is from `docs/LEARNINGS.md` (all 52 stations); the in-repo test runs on 16.
+## Human shot list (SUPPLY)
 
-## Render the voice-over
+| File | What | Spec |
+|---|---|---|
+| `video/supply/console.mp4` | The AWS console: Lambda > Monitor (hourly invocations), the EventBridge rule, S3 `data/` with recent timestamps, the CloudFront distribution. | 1920x1080, 10-15 s, no cursor waving, no account ids or keys on screen. |
 
-```
-pip install edge-tts
-edge-tts --voice en-IN-NeerjaNeural --rate=+5% -f video/voiceover.txt --write-media video/voiceover.mp3
-```
-The script is 234 words, about 95 s of speech, leaving about a minute for pauses and on-screen moments inside 2:40.
+If the file is missing, `assemble.py` renders a placeholder card so the cut still builds.
+
+## Check before the final render
+
+- [ ] Scene 5's "fifty-two" matches the number of stations in the live `data/latest.json`.
+- [ ] Scene 6: Vikas Sadan is still flagged on physics in the live data; if not, pick the station `?demo=1` picks and change the line.
+- [ ] Scene 8: Jahangirpuri's history check still says humidity moved; if not, change the line to what its card says.
+- [ ] Scene 10: `video/assets/pytest.txt` comes from a fresh `make test` run.
