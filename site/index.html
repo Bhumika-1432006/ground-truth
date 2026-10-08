@@ -83,8 +83,8 @@
   <div class="wrap">
     <a class="wordmark" href="#top" aria-label="Ground Truth home">ground<b>truth</b></a>
     <nav aria-label="Sections">
+      <a href="#story">How it works</a>
       <a href="#live">Live map</a>
-      <a href="#how">How it works</a>
       <a href="#proof">Proof</a>
       <a href="#faq">FAQ</a>
       <span class="fresh" id="fresh">Loading data…</span>
@@ -125,14 +125,56 @@
     </div>
   </section>
 
+    <section class="sec story" id="story" aria-labelledby="story-title">
+      <div class="wrap">
+        <div class="sec-head center">
+          <span class="label">How it works, in ten seconds</span>
+          <h2 class="h2" id="story-title"><span class="dim">A reading on its own can't tell you if it's right.</span>The monitors around it can.</h2>
+        </div>
+        <ol class="steps" id="steps">
+          <li class="step">
+            <div class="step-art" id="step1-art"></div>
+            <span class="step-n">1</span>
+            <h3 id="step1-title">A monitor reports a number</h3>
+            <p id="step1-text">Every hour, each of Delhi's monitors publishes its PM2.5 reading.</p>
+          </li>
+          <li class="step">
+            <div class="step-art" id="step2-art"></div>
+            <span class="step-n">2</span>
+            <h3 id="step2-title">We ask its four neighbours</h3>
+            <p id="step2-text">We compare it with the four nearest monitors, within 12 km.</p>
+          </li>
+          <li class="step">
+            <div class="step-art" id="step3-art"></div>
+            <span class="step-n">3</span>
+            <h3 id="step3-title">You get a plain answer</h3>
+            <p id="step3-text">If the numbers don't add up, we say so, and show you which number to use instead.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="sec alt" id="meaning" aria-labelledby="meaning-title">
+      <div class="wrap">
+        <div class="sec-head">
+          <div>
+            <span class="label">Reading the answers</span>
+            <h2 class="h2" id="meaning-title"><span class="dim">Every monitor gets one of three answers.</span>Here's what to do with each.</h2>
+          </div>
+        </div>
+        <div class="meanings" id="meanings"></div>
+        <p class="footnote" id="nodata-note"></p>
+      </div>
+    </section>
+
     <section class="sec" id="live" aria-labelledby="live-title">
       <div class="wrap">
         <div class="sec-head">
           <div>
-            <span class="label">01 · Live map</span>
-            <h2 class="h2" id="live-title">Every monitor,<span class="dim">with a plain answer.</span></h2>
+            <span class="label">Live map</span>
+            <h2 class="h2" id="live-title"><span class="dim">Find the monitor you rely on.</span>See its answer, and why.</h2>
           </div>
-          <p class="sub">Click a station. You get its reading next to what the four stations around it read right now, and the evidence behind its status.</p>
+          <p class="sub">Click any marker. The panel shows what that monitor reads, what its neighbours read, and the three checks behind its answer.</p>
         </div>
         <div class="window">
           <div class="chrome"><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div><span class="url">groundtruth / delhi / live</span><span class="live" id="chrome-live">Live</span></div>
@@ -142,11 +184,7 @@
               <div class="legend" id="legend"></div>
             </div>
             <div class="panel" id="panel" aria-live="polite">
-              <div class="empty">
-                <svg width="46" height="46" viewBox="0 0 46 46" fill="none" aria-hidden="true"><circle cx="23" cy="23" r="21" stroke="#d6d6d9" stroke-width="1.5" stroke-dasharray="3 4"/><circle cx="23" cy="23" r="5" fill="#08090a"/></svg>
-                <h2>Pick a station</h2>
-                <p>Click a marker on the map, or search for the station nearest you.</p>
-              </div>
+              <div class="empty"><h2>Loading the monitors…</h2></div>
             </div>
           </div>
         </div>
@@ -157,95 +195,103 @@
       <div class="wrap">
         <div class="sec-head">
           <div>
-            <span class="label">02 · How it works</span>
-            <h2 class="h2" id="how-title">Three questions,<span class="dim">every monitor, every hour.</span></h2>
+            <span class="label">The three checks</span>
+            <h2 class="h2" id="how-title"><span class="dim">Three questions, asked every hour.</span>Each one, with a real example.</h2>
           </div>
         </div>
-        <div class="trio">
-          <article>
-            <div class="glyph" aria-hidden="true"><svg width="150" height="60" viewBox="0 0 150 60"><rect x="30" y="8" width="34" height="44" rx="4" fill="#e6e6e8"/><rect x="30" y="30" width="34" height="22" rx="4" fill="#b4b5ba"/><rect x="86" y="8" width="34" height="44" rx="4" fill="#e6e6e8"/><rect x="86" y="2" width="34" height="50" rx="4" fill="none" stroke="#d03b3b" stroke-width="1.6" stroke-dasharray="3 3"/></svg></div>
-            <span class="num">01 · Physics</span>
-            <h3>Can this reading be real?</h3>
-            <p>Fine dust (PM2.5) is part of all dust (PM10), so it can never be larger. We also catch values out of range and sensors stuck on one number for hours.</p>
+        <div class="checks3">
+          <article class="c3">
+            <div class="c3-art" id="ex-physics"></div>
+            <span class="label">Physics</span>
+            <h3>Can this reading even be real?</h3>
+            <p>Fine dust (PM2.5) is part of all dust (PM10), so it can never be bigger. A monitor that says otherwise, or repeats the same number for hours, is broken.</p>
+            <p class="c3-case" id="ex-physics-case"></p>
           </article>
-          <article>
-            <div class="glyph" aria-hidden="true"><svg width="150" height="60" viewBox="0 0 150 60"><g stroke="#d6d6d9" stroke-width="1.2"><path d="M75 30 40 12M75 30l35-18M75 30 40 48M75 30l35 18"/></g><circle cx="40" cy="12" r="5" fill="#b4b5ba"/><circle cx="110" cy="12" r="5" fill="#b4b5ba"/><circle cx="40" cy="48" r="5" fill="#b4b5ba"/><circle cx="110" cy="48" r="5" fill="#b4b5ba"/><circle cx="75" cy="30" r="7" fill="#08090a"/></svg></div>
-            <span class="num">02 · Neighbours</span>
-            <h3>Does it agree with the stations around it?</h3>
-            <p>Hour by hour, against the four nearest stations within 12 km. A station whose daytime readings fall away from its neighbours, more than daytime mixing explains, stands out.</p>
+          <article class="c3">
+            <div class="c3-art" id="ex-neighbours"></div>
+            <span class="label">Neighbours</span>
+            <h3>Does it agree with the monitors around it?</h3>
+            <p>Hour by hour, against the four nearest. Daytime air mixes, so some difference is normal; we only flag a monitor that drifts far more than the rest of the city.</p>
+            <p class="c3-case" id="ex-neighbours-case"></p>
           </article>
-          <article>
-            <div class="glyph" aria-hidden="true"><svg width="150" height="60" viewBox="0 0 150 60"><path d="M10 34c10-4 18 4 28 0s18-6 28-2 16 2 24 0" stroke="#b4b5ba" stroke-width="2" fill="none"/><path d="M90 32c8-2 10-18 20-20s16 4 30 2" stroke="#08090a" stroke-width="2" fill="none"/><path d="M90 6v48" stroke="#d6d6d9" stroke-dasharray="3 3"/></svg></div>
-            <span class="num">03 · History</span>
+          <article class="c3">
+            <div class="c3-art" id="ex-history"></div>
+            <span class="label">History</span>
             <h3>Has it suddenly changed?</h3>
-            <p>The last 7 days against the 3 weeks before, for dust and humidity. A sudden shift against its own past is worth a look.</p>
+            <p>We compare the last 7 days with the 3 weeks before. A sudden jump against its own past means something changed at that monitor.</p>
+            <p class="c3-case" id="ex-history-case"></p>
           </article>
         </div>
-        <div class="limits"><strong>What a flag means, and what it doesn't.</strong> A flag means a station's numbers don't add up against physics, its neighbours or its own past. It does not mean anyone tampered with it: sensors drift, break and get moved. Daytime air mixing makes polluted spots look cleaner by day, so we correct for it. Data comes from the CPCB and DPCC monitors via <a href="https://openaq.org">OpenAQ</a>, refreshed every hour.</div>
       </div>
     </section>
 
-    <section class="sec" id="proof" aria-labelledby="proof-title">
+    <section class="sec" id="who" aria-labelledby="who-title">
       <div class="wrap">
         <div class="sec-head">
           <div>
-            <span class="label">03 · Proof</span>
-            <h2 class="h2" id="proof-title">Proof, not promises.<span class="dim">Every claim has a test.</span></h2>
+            <span class="label">Who it's for</span>
+            <h2 class="h2" id="who-title"><span class="dim">For anyone who acts on the number.</span>Before they act on it.</h2>
           </div>
-          <p class="sub">We planted a 40% daytime drop in real Delhi data, one quiet station at a time, and checked that the tool catches it without blaming the stations around it.</p>
         </div>
-        <div class="proof">
-          <div class="bignum"><span class="label">Planted anomalies caught</span><b>30/30</b><p>Across all 52 stations in November 2025. The drop newly flagged 3 other stations across all 30 runs.</p></div>
-          <div class="term" role="img" aria-label="Test run output">
-            <div class="chrome"><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div><span class="url">make test</span><span></span></div>
-<pre><span class="dim">$ pytest -v tests   # excerpt</span>
-tests/test_scorer.py::test_quiet_station_starts_ok <span class="ok">PASSED</span>
-tests/test_scorer.py::test_planted_daytime_drop_is_flagged <span class="ok">PASSED</span>
-tests/test_scorer.py::test_every_quiet_station_is_caught <span class="ok">PASSED</span>
-tests/test_scorer.py::test_planting_one_station_does_not_flag_the_others <span class="ok">PASSED</span>
-tests/test_scorer.py::test_daytime_window_matters <span class="ok">PASSED</span>
-tests/test_scorer.py::test_pm25_above_pm10_is_flagged <span class="ok">PASSED</span>
-tests/test_scorer.py::test_stuck_sensor_is_flagged <span class="ok">PASSED</span>
-tests/test_scorer.py::test_copy_never_accuses <span class="ok">PASSED</span>
-tests/test_ingest.py::test_rate_limit_is_retried <span class="ok">PASSED</span>
-<span class="dim">…</span>
-<span class="ok">22 passed</span>, 1 skipped in 4.6s</pre>
-          </div>
+        <div class="people">
+          <article class="person">
+            <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 54V28l22-14 22 14v26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M26 54V40h12v14M32 14V6l8 3-8 3" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
+            <h3>A school principal</h3>
+            <p>Deciding at 7:30 whether assembly and PE stay outdoors. If the nearest monitor doesn't add up, they use what the monitors around the school read.</p>
+          </article>
+          <article class="person">
+            <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="24" cy="14" r="6" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="44" cy="24" r="4.5" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M24 22v16l-6 16M24 38l6 16M24 28l-8 8M24 28l10 6M44 30v12l-4 12M44 42l4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <h3>A parent</h3>
+            <p>Planning a walk or a park visit with a child, or deciding when to run the air purifier. One glance tells them whether today's number can be trusted.</p>
+          </article>
+          <article class="person">
+            <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="10" y="12" width="44" height="40" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M18 22h28M18 30h28M18 38h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+            <h3>A reporter or official</h3>
+            <p>Checking whether a monitor's readings changed, and when, before writing about it. Every answer links to the hour-by-hour evidence.</p>
+          </article>
         </div>
       </div>
     </section>
 
-    <section class="sec alt" id="aws" aria-labelledby="aws-title">
+    <section class="sec alt" id="proof" aria-labelledby="proof-title">
+      <div class="wrap proof2">
+        <div>
+          <span class="label">Does it actually work?</span>
+          <h2 class="h2" id="proof-title"><span class="dim">We tried to fool it 30 times.</span>It caught all 30.</h2>
+          <p class="sub">We took real data from November 2025 and, one quiet monitor at a time, secretly lowered its daytime dust by 40%. Ground Truth flagged every one of them, and wrongly flagged another monitor only 3 times across all 30 runs.</p>
+          <p class="sub small">This test, and 21 others, run automatically every time the code changes. <a href="https://github.com/thegoodengineers/ground-truth">See the tests</a></p>
+        </div>
+        <div class="ticks" id="ticks" role="img" aria-label="30 out of 30 planted problems caught"></div>
+      </div>
+    </section>
+
+    <section class="sec" id="aws" aria-labelledby="aws-title">
       <div class="wrap">
         <div class="sec-head">
           <div>
-            <span class="label">04 · Built on AWS</span>
-            <h2 class="h2" id="aws-title">One template.<span class="dim">Runs itself every hour.</span></h2>
+            <span class="label">Built on AWS</span>
+            <h2 class="h2" id="aws-title"><span class="dim">Nobody presses a button.</span>It checks itself every hour.</h2>
           </div>
-          <p class="sub">Deployed with AWS SAM in us-east-1, next to the public OpenAQ archive it reads from.</p>
+          <p class="sub">The whole system is one AWS SAM template, deployed in us-east-1 next to the public OpenAQ archive it reads from.</p>
         </div>
-        <div class="arch">
-          <div><b>Amazon EventBridge</b><span>Starts the check every hour</span></div>
-          <div><b>AWS Lambda</b><span>Fetches readings, runs the three checks</span></div>
-          <div><b>Parameter Store</b><span>Keeps the OpenAQ key encrypted</span></div>
-          <div><b>Amazon S3</b><span>History cache and the results as JSON</span></div>
-          <div><b>Amazon CloudFront</b><span>Serves this site and the data</span></div>
-          <div><b>AWS SAM</b><span>The whole stack in one file</span></div>
-          <div><b>Open Data on AWS</b><span>OpenAQ's public archive, for history</span></div>
-          <div><b>GitHub Actions</b><span>Lint and tests on every change</span></div>
-        </div>
-        <p class="flow">EventBridge → Lambda (+ Parameter Store, OpenAQ API) → S3 → CloudFront → you</p>
+        <ol class="pipe" aria-label="How data flows">
+          <li><span class="pipe-k">Every hour</span><b>Amazon EventBridge</b><span>starts the check</span></li>
+          <li><span class="pipe-k">Fetch + check</span><b>AWS Lambda</b><span>reads new readings from OpenAQ, with the key from Parameter Store, and runs the three checks</span></li>
+          <li><span class="pipe-k">Store</span><b>Amazon S3</b><span>keeps 29 days of history and the results</span></li>
+          <li><span class="pipe-k">Serve</span><b>Amazon CloudFront</b><span>delivers this page and the data</span></li>
+          <li><span class="pipe-k">Read</span><b>You</b><span>see every monitor's answer</span></li>
+        </ol>
       </div>
     </section>
 
-    <section class="sec" id="faq" aria-labelledby="faq-title">
+    <section class="sec alt" id="faq" aria-labelledby="faq-title">
       <div class="wrap">
-        <div class="sec-head"><div><span class="label">05 · FAQ</span><h2 class="h2" id="faq-title">Questions,<span class="dim">answered plainly.</span></h2></div></div>
+        <div class="sec-head"><div><span class="label">Questions</span><h2 class="h2" id="faq-title"><span class="dim">Still wondering?</span>Plain answers.</h2></div></div>
         <div class="faq">
-          <details><summary>Which number should I use if my station is flagged?</summary><p>Use what the four nearest stations read right now. The station panel shows it next to your station's own reading. It is a median of real monitors, not an official reading.</p></details>
-          <details><summary>Does a flag mean someone sprayed water near the monitor?</summary><p>No. We tested whether the stations named in the news in October 2025 show a spraying pattern, and with our method they don't stand out. A flag only says the numbers don't add up.</p></details>
+          <details><summary>Does a red answer mean someone tampered with the monitor?</summary><p>No. It means the monitor's numbers don't add up against physics, its neighbours or its own past. Sensors drift, break and get moved. We tested whether the monitors named in the news in October 2025 show a spraying pattern, and with our method they don't stand out.</p></details>
+          <details><summary>Which number should I use if my monitor is flagged?</summary><p>Use what the four nearest monitors read right now. The panel shows it next to your monitor's own reading. It is the middle value of real monitors, not an official reading.</p></details>
           <details><summary>How fresh is the data?</summary><p>The check runs every hour on new readings from the CPCB and DPCC monitors, via OpenAQ. The time of the latest reading is at the top of the page.</p></details>
-          <details><summary>How do you know the checks work?</summary><p>We planted a 40% daytime drop in real data at each quiet station, one at a time. It was flagged 30 times out of 30, and newly flagged 3 other stations across all 30 runs. The tests run on every change to the code.</p></details>
+          <details><summary>Why does a polluted area look cleaner in the afternoon?</summary><p>By day the air mixes higher, so pollution near busy roads spreads out and a hotspot reads closer to its neighbours. We correct for this so it isn't mistaken for a problem.</p></details>
           <details><summary>Is the code open?</summary><p>Yes. Everything, including the data analysis behind these checks, is on GitHub.</p></details>
         </div>
       </div>
@@ -273,7 +319,7 @@ tests/test_ingest.py::test_rate_limit_is_retried <span class="ok">PASSED</span>
     </div>
     <div>
       <h4>Project</h4>
-      <ul><li><a href="https://github.com/thegoodengineers/ground-truth">GitHub</a></li><li><a href="?demo=1">60-second tour</a></li><li><a href="#how">How it works</a></li></ul>
+      <ul><li><a href="https://github.com/thegoodengineers/ground-truth">GitHub</a></li><li><a href="?demo=1">60-second tour</a></li><li><a href="#story">How it works</a></li></ul>
     </div>
   </div>
 </footer>

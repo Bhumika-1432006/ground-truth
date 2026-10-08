@@ -70,13 +70,19 @@
     renderStats();
     renderMap();
     renderLegend();
-    renderExample();
+    const example = pickExample();
+    renderExample(example);
+    renderStory(example);
+    renderMeanings();
+    renderCheckExamples();
+    renderTicks();
     setupSearch();
     window.addEventListener("hashchange", fromHash);
     $("#close-cta")?.addEventListener("click", (e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); setTimeout(() => $("#search").focus(), 500); });
     mark("loaded");
     if (new URLSearchParams(location.search).get("demo") === "1" || location.hash === "#tour") tour();
-    else fromHash();
+    else if (byId.has(Number(location.hash.slice(1)))) fromHash();
+    else if (example) select(example.id, { quiet: true, spot: spotFor(example) }); // the map never opens empty
   }
 
   function fromHash() {
@@ -108,15 +114,21 @@
   }
 
   // the hero shows the product: the clearest current case, straight from the data
-  function renderExample() {
-    const el = $("#example");
+  function pickExample() {
     // the doubtful station whose reading differs most from its neighbours' right now
     const gap = (x) => Math.abs(Math.log((x.latest.pm25 + 1) / (x.neighbours_latest.pm25 + 1)));
     const cases = latest.stations
       .filter((x) => (x.status === "flag" || x.status === "watch") && x.latest?.pm25 != null && x.neighbours_latest?.pm25 != null)
       .sort((a, b) => ORDER.indexOf(a.status) - ORDER.indexOf(b.status) || gap(b) - gap(a));
     const best = cases.find((x) => gap(x) > Math.log(1.25));
-    const s = best || cases[0] || latest.stations.find((x) => x.status === "flag") || latest.stations.find((x) => x.status === "watch");
+    return best || cases[0] || latest.stations.find((x) => x.status === "flag") || latest.stations.find((x) => x.status === "watch") || null;
+  }
+
+  const spotFor = (s) => CHECKS.find(([k]) => s.checks[k].status === s.status)?.[0];
+  const openStation = (id, spot) => { select(id, { fly: true, spot }); $("#live").scrollIntoView({ behavior: "smooth", block: "start" }); };
+
+  function renderExample(s) {
+    const el = $("#example");
     if (!s) { el.remove(); return; }
     const c = CHECKS.map(([k, name]) => [name, s.checks[k]]).find(([, v]) => v.status === s.status) || ["", { detail: "" }];
     el.innerHTML = `
@@ -125,8 +137,119 @@
       ${pill(s.status)}
       <div class="nums">This station <b>${fmt(s.latest?.pm25)}</b> µg/m³ PM2.5 · the 4 stations around it <b>${fmt(s.neighbours_latest?.pm25)}</b></div>
       <button class="btn dark" type="button" data-open="${s.id}">See why <span class="arr">→</span></button>`;
-    el.querySelector("[data-open]").addEventListener("click", () => { select(s.id, { fly: true, spot: CHECKS.find(([k]) => s.checks[k].status === s.status)?.[0] }); $("#live").scrollIntoView({ behavior: "smooth", block: "start" }); });
+    el.querySelector("[data-open]").addEventListener("click", () => openStation(s.id, spotFor(s)));
     el.hidden = false;
+  }
+
+
+  // ---------- the 10-second story, told with one real station ----------
+  const mast = (h = 64) => `<svg width="${h * .75}" height="${h}" viewBox="0 0 48 64" aria-hidden="true"><path d="M24 62V18" stroke="#2b2c2f" stroke-width="2.5"/><path d="M24 62 14 64M24 62l10 2" stroke="#2b2c2f" stroke-width="2"/><rect x="11" y="18" width="26" height="20" rx="3" fill="#3a3b3e"/><path d="M14 25h20M14 30h20" stroke="#6b6c70" stroke-width="1.4"/><circle cx="24" cy="12" r="3" fill="#1f9d5c"/><circle cx="24" cy="12" r="6.5" fill="#1f9d5c" opacity=".18"/></svg>`;
+
+  async function renderStory(s) {
+    if (!s || s.latest?.pm25 == null) return; // the generic copy in the HTML stays
+    let doc = null;
+    try { doc = await getJSON(`data/stations/${s.id}.json`); } catch (e) { return; }
+    const nbs = (doc.neighbours || []).map((i) => byId.get(i)).filter(Boolean);
+    const name = esc(short(s.name));
+    $("#step1-art").innerHTML = `<div class="reading">${mast(58)}<div class="big">${fmt(s.latest.pm25)}</div><div class="unit">µg/m³ PM2.5</div><div class="who">${name}</div></div>`;
+    $("#step1-title").textContent = `${short(s.name)} says ${fmt(s.latest.pm25)}`;
+    $("#step1-text").textContent = "That's its PM2.5 reading for the latest hour. On its own, there's no way to tell whether it's right.";
+    const around = s.neighbours_latest?.pm25;
+    $("#step2-art").innerHTML = `<div class="nbgrid">${nbs.map((n) => `<div class="nb"><b>${fmt(n.latest?.pm25)}</b><span>${esc(short(n.name))}</span></div>`).join("")}<div class="nbmid">middle value <b>${fmt(around)}</b> µg/m³</div></div>`;
+    $("#step2-title").textContent = `Its four neighbours say ${fmt(around)}`;
+    $("#step2-text").textContent = "We take the middle value of the four nearest monitors, within 12 km. One odd neighbour can't drag it.";
+    const use = s.status === "ok" ? s.latest.pm25 : around;
+    $("#step3-art").innerHTML = `<div class="verdict">${pill(s.status)}<div class="use">For today, use<b>${fmt(use)}</b>µg/m³ PM2.5</div></div>`;
+    $("#step3-title").textContent = s.status === "ok" ? "It adds up, so use it" : `${STATUS[s.status].label}: use ${fmt(around)}`;
+    $("#step3-text").textContent = "Before answering, we also check the reading against physics and against the monitor's own last three weeks. Every answer shows its evidence.";
+  }
+
+  function renderMeanings() {
+    const groups = {};
+    latest.stations.forEach((s) => (groups[s.status] = groups[s.status] || []).push(s));
+    const copy = {
+      ok: ["Its numbers add up against physics, its neighbours and its own past.", "Use its reading as it is."],
+      watch: ["Something about it is unusual, but not clearly wrong.", "Compare its reading with what its neighbours read before acting on it."],
+      flag: ["Its numbers don't add up: impossible values, or far out of line with its neighbours or its past.", "Use what the four monitors around it read instead."],
+    };
+    $("#meanings").innerHTML = ["ok", "watch", "flag"].map((st) => {
+      const list = (groups[st] || []).slice().sort((a, b) => a.name.localeCompare(b.name));
+      const shown = list.slice(0, st === "ok" ? 4 : 6);
+      return `<article class="meaning">
+        <div class="head">${icon(st, 30)}<h3>${STATUS[st].label}</h3></div>
+        <dl><dt>What it means</dt><dd>${copy[st][0]}</dd><dt>What to do</dt><dd>${copy[st][1]}</dd></dl>
+        <div class="now-count"><b>${list.length}</b><span>monitor${list.length === 1 ? "" : "s"} right now${list.length > shown.length ? `, for example:` : list.length ? ":" : ""}</span></div>
+        <div class="chips">${shown.map((s) => `<button type="button" data-open="${s.id}">${esc(short(s.name))}</button>`).join("")}</div>
+      </article>`;
+    }).join("");
+    const nd = groups.nodata?.length || 0;
+    $("#nodata-note").innerHTML = nd ? `${icon("nodata", 12)} ${nd} more monitor${nd === 1 ? " has" : "s have"} too little recent data to check.` : "";
+    $("#meanings").querySelectorAll("[data-open]").forEach((b) => b.addEventListener("click", () => { const s = byId.get(Number(b.dataset.open)); openStation(s.id, spotFor(s)); }));
+  }
+
+  function svgLine(values, { w = 320, h = 150, band = null, zero = true } = {}) {
+    const pts = values.map((v, i) => [i, v]).filter(([, v]) => v != null);
+    if (pts.length < 2) return "";
+    const ys = pts.map(([, v]) => v).concat(zero ? [0] : []);
+    const lo = Math.min(...ys), hi = Math.max(...ys), pad = (hi - lo) * 0.15 || 1;
+    const X = (i) => 16 + (i / (values.length - 1)) * (w - 32), Y = (v) => h - 18 - ((v - (lo - pad)) / (hi - lo + 2 * pad)) * (h - 36);
+    const d = pts.map(([i, v], k) => `${k ? "L" : "M"}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join("");
+    const b = band ? `<rect x="${X(band[0] - .5)}" y="10" width="${X(band[1] + .5) - X(band[0] - .5)}" height="${h - 28}" fill="rgba(242,166,12,.12)"/><text x="${(X(band[0]) + X(band[1])) / 2}" y="${h - 4}" text-anchor="middle" font-family="Geist Mono" font-size="10" fill="#8b8d93">11:00-17:00</text>` : "";
+    const z = zero ? `<path d="M16 ${Y(0)}H${w - 16}" stroke="#b4b5ba" stroke-dasharray="3 3"/><text x="${w - 16}" y="${Y(0) - 5}" text-anchor="end" font-family="Geist Mono" font-size="10" fill="#8b8d93">same as neighbours</text>` : "";
+    return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true">${b}${z}<path d="${d}" fill="none" stroke="#08090a" stroke-width="2" stroke-linejoin="round"/></svg>`;
+  }
+
+  function svgDaily(values, recent = 7, { w = 320, h = 150 } = {}) {
+    const vals = values.map((v) => (v == null ? null : v));
+    const nums = vals.filter((v) => v != null);
+    if (nums.length < 5) return "";
+    const lo = Math.min(0, ...nums), hi = Math.max(0, ...nums), span = hi - lo || 1;
+    const bw = (w - 32) / vals.length, Y = (v) => 14 + ((hi - v) / span) * (h - 40);
+    const bars = vals.map((v, i) => {
+      if (v == null) return "";
+      const y0 = Y(0), y1 = Y(v), r = i >= vals.length - recent;
+      return `<rect x="${(16 + i * bw + 1).toFixed(1)}" y="${Math.min(y0, y1).toFixed(1)}" width="${(bw - 2).toFixed(1)}" height="${Math.max(1, Math.abs(y1 - y0)).toFixed(1)}" rx="1.5" fill="${r ? "#08090a" : "#c9cace"}"/>`;
+    }).join("");
+    return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><path d="M16 ${Y(0)}H${w - 16}" stroke="#d6d6d9"/>${bars}<text x="16" y="${h - 6}" font-family="Geist Mono" font-size="10" fill="#8b8d93">3 weeks before</text><text x="${w - 16}" y="${h - 6}" text-anchor="end" font-family="Geist Mono" font-size="10" fill="#08090a">last 7 days</text></svg>`;
+  }
+
+  async function renderCheckExamples() {
+    const worst = (k, key) => latest.stations.filter((s) => s.checks[k].status === "flag" || s.checks[k].status === "watch")
+      .sort((a, b) => Math.abs(b.checks[k][key] ?? 0) - Math.abs(a.checks[k][key] ?? 0))[0];
+    const link = (s) => `<button type="button" data-open="${s.id}" data-spot="${s._spot}">${esc(short(s.name))}</button>`;
+
+    // physics: what an impossible reading looks like, and who does it now
+    $("#ex-physics").innerHTML = `<svg viewBox="0 0 320 150" aria-hidden="true"><text x="96" y="140" text-anchor="middle" font-family="Geist Mono" font-size="11" fill="#4f5156">PM10 (all dust)</text><text x="224" y="140" text-anchor="middle" font-family="Geist Mono" font-size="11" fill="#4f5156">PM2.5 (fine dust)</text><rect x="66" y="58" width="60" height="66" rx="5" fill="#c9cace"/><rect x="194" y="22" width="60" height="102" rx="5" fill="#d03b3b" opacity=".85"/><path d="M60 58h200" stroke="#08090a" stroke-dasharray="4 4"/><text x="96" y="50" text-anchor="middle" font-family="Geist Mono" font-size="10.5" fill="#4f5156">the limit</text><text x="224" y="80" text-anchor="middle" font-family="Geist Mono" font-size="11" fill="#ffffff">impossible</text></svg>`;
+    const p = worst("physics", "fail_pct");
+    if (p) { p._spot = "physics"; $("#ex-physics-case").innerHTML = `Right now: ${link(p)} reports impossible values in ${p.checks.physics.fail_pct}% of last week's hours.`; }
+
+    const n = worst("neighbours", "z");
+    if (n) {
+      n._spot = "neighbours";
+      try {
+        const doc = await getJSON(`data/stations/${n.id}.json`);
+        const pct = (doc.hour_profile_7d?.pm10 || []).map((g) => (g == null ? null : (Math.exp(g) - 1) * 100));
+        $("#ex-neighbours").innerHTML = svgLine(pct, { band: [11, 16] });
+      } catch (e) { /* the card still reads without the picture */ }
+      $("#ex-neighbours-case").innerHTML = `Right now: ${link(n)}. ${esc(n.checks.neighbours.detail)}`;
+    }
+
+    const h = worst("history", "z");
+    if (h) {
+      h._spot = "history";
+      try {
+        const doc = await getJSON(`data/stations/${h.id}.json`);
+        const key = `d_${h.checks.history.param}`;
+        $("#ex-history").innerHTML = svgDaily(doc.daily.map((r) => r[key]));
+      } catch (e) { /* the card still reads without the picture */ }
+      $("#ex-history-case").innerHTML = `Right now: ${link(h)}. ${esc(h.checks.history.detail)}`;
+    }
+    document.querySelectorAll(".c3-case [data-open]").forEach((b) => b.addEventListener("click", () => openStation(Number(b.dataset.open), b.dataset.spot)));
+  }
+
+  function renderTicks() {
+    const tick = `<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M3.5 7.4l2.3 2.3 4.7-5" stroke="#0a6b0a" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    $("#ticks").innerHTML = Array.from({ length: 30 }, (_, i) => `<i style="animation-delay:${(i * 0.03).toFixed(2)}s">${tick}</i>`).join("");
   }
 
   // ---------- map ----------
@@ -162,7 +285,7 @@
   }
 
   // ---------- station panel ----------
-  async function select(id, { fly = false, spot = null } = {}) {
+  async function select(id, { fly = false, spot = null, quiet = false } = {}) {
     const s = byId.get(id);
     if (!s) return;
     if (selected != null && markers.has(selected)) markers.get(selected).setIcon(markerIcon(byId.get(selected), false));
@@ -171,7 +294,7 @@
     m.setIcon(markerIcon(s, true));
     m.setZIndexOffset(1000);
     if (fly) map.flyTo([s.lat, s.lon], Math.max(map.getZoom(), 11), { duration: 0.8 });
-    if (location.hash !== `#${id}`) history.replaceState(null, "", `${location.search}#${id}`);
+    if (!quiet && location.hash !== `#${id}`) history.replaceState(null, "", `${location.search}#${id}`);
 
     const panel = $("#panel");
     panel.innerHTML = panelHTML(s, null);
