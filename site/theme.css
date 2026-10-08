@@ -48,7 +48,7 @@ button, input, select { font: inherit; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* ---------- nav ---------- */
-.nav { position: sticky; top: 0; z-index: 1500; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background: color-mix(in srgb, var(--bg) 75%, transparent); border-bottom: 1px solid transparent; }
+.nav { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 1500; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background: color-mix(in srgb, var(--bg) 75%, transparent); border-bottom: 1px solid transparent; }
 .nav .wrap { display: flex; align-items: center; gap: 18px; height: 68px; }
 .wordmark { font: 500 22px/1 var(--mono); letter-spacing: -.03em; text-decoration: none; color: var(--ink); }
 .wordmark b { font-weight: 500; color: var(--ink-3); }

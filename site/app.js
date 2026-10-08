@@ -75,7 +75,7 @@
     window.addEventListener("hashchange", fromHash);
     $("#close-cta")?.addEventListener("click", (e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); setTimeout(() => $("#search").focus(), 500); });
     mark("loaded");
-    if (new URLSearchParams(location.search).get("demo") === "1") tour();
+    if (new URLSearchParams(location.search).get("demo") === "1" || location.hash === "#tour") tour();
     else fromHash();
   }
 
