@@ -15,9 +15,9 @@ Owners: **Abhijeet** (thegoodengineer) = AWS · **Chirag** (Chirag6722) = backen
 - [ ] **First deploy** (#2, Abhijeet). Uses `template.yaml`. Done: `make deploy && make url` prints an HTTPS URL that serves `index.html`.
 - [ ] **Live data** (#3, Abhijeet). Done: `make seed && make run` prints `"scored": true` and an `overlap_ratio` near 1.0 for pm10/pm25; two scheduled runs later `data_through` has advanced.
 - [ ] **Site v1: map + station panel + `?demo=1`** (#12-#14). Files: `site/index.html`, `site/app.js`, `site/theme.css`. Done: `make local`, open `http://localhost:8000`: all stations on the map; clicking one opens three check cards and the hour-of-day chart; `?demo=1` plays the tour by itself; no console errors.
-- [ ] **Video pipeline** (#10). Files: `video/script.md`, `video/narrate.py`, `video/scenes/scenes.html`, `video/record.py`, `video/capture_demo.py`, `video/assemble.py`. Done: `make video` produces `video/final.mp4` under 3:00, never sped up.
+- [ ] **Video pipeline** (#10, Sunday). Files: `video/script.md`, `video/narrate.py`, `video/scenes/scenes.html`, `video/record.py`, `video/capture_demo.py`, `video/assemble.py`. Done: `make video` produces `video/final.mp4` under 3:00, never sped up.
 - [ ] **Console clip** (#4, Abhijeet, Saturday). Done: `video/supply/console.mp4`, 10-15 s, 1920x1080.
-- [ ] **Writeup + submission** (#11, Chirag, Saturday night). Files: `docs/submission.md`, `README.md`. Done: form submitted, screenshot in #11.
+- [ ] **Writeup + submission** (#11, Chirag, Sunday, after the video). Files: `docs/submission.md`, `README.md`. Done: form submitted, screenshot in #11.
 
 ## Should
 

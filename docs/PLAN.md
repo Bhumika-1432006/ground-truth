@@ -67,17 +67,17 @@ The archive runs about 4 days behind (on 8 Oct the latest file was 4 Oct), so th
 | The AWS account or CloudFront isn't ready in time (#1, #2) | The site runs from `make local` with real sample data, and `?demo=1` needs no backend, so the video can be recorded regardless. Fallback hosting: the S3 website endpoint. |
 | OpenAQ API rate limit or schema surprise on the first live run | Calls are paced and budgeted (`MAX_CALLS`); `overlap_ratio` checks units against the archive; the archive-seeded cache keeps the site useful even if live hours lag. |
 | The tool reads as an accusation | Copy rules plus a test (`test_copy_never_accuses`); a limits section on the site; the honest Anand Vihar result in the video. |
-| Design and video lose points again (as at First Commit) | The site is built today against real data; UI rounds with screenshots on Friday; the video pipeline is code, scripted today, rendered Saturday. |
+| Design and video lose points again (as at First Commit) | The site is built against real data; UI rounds with screenshots on Friday. The video script is written now; the video itself is made on Sunday from that script with the code pipeline, so it takes hours, not a day. |
 | Bhumika can't push (read-only access) | Raise her to Write; until then she works from a fork. |
 
 ## Timeline
 
 | When | Goal | Owner |
 |---|---|---|
-| **Thu 8 Oct** | Done: spike, plan, scorer + tests, ingest Lambda, SAM template, video script v1. To do: AWS account + key (#1), first deploy (#2), site v1 with `?demo=1`. | All |
-| **Fri 9 Oct** | Live hourly data (#3, `make seed && make run`). UI rounds: theme -> mobile -> states, with screenshots at 1440/1024/400. Video pipeline renders a first full draft. | Abhijeet, Bhumika, Chirag |
-| **Sat 10 Oct** | UI freeze 14:00 IST. Console clip (#4). Final video render, YouTube upload (unlisted). README with GIF, writeup, blog. **Submit Saturday night.** | All |
-| **Sun 11 Oct** | Buffer only. Check every link in a signed-out browser. Nothing new. | - |
+| **Thu 8 Oct** | Done: spike, plan, scorer + tests, ingest Lambda, SAM template, site (light design, `?demo=1`), video script. To do: AWS account + key (#1), first deploy (#2). | All |
+| **Fri 9 Oct** | Live hourly data (#3, `make seed && make run`). UI polish rounds with screenshots at 1440/1024/400. README for judges. | Abhijeet, Bhumika, Chirag |
+| **Sat 10 Oct** | UI freeze 14:00 IST. Console clip (#4). Writeup and blog drafted. | All |
+| **Sun 11 Oct** | Video day: build the scenes, record the `?demo=1` capture, narrate, assemble, upload to YouTube (unlisted). Then submit, at least 1 hour before the deadline, and check every link in a signed-out browser. | All |
 
 ## Out of scope
 
