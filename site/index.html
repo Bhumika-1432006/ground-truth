@@ -171,6 +171,32 @@
       </div>
     </section>
 
+    <section class="sec alt spray" id="spray" aria-labelledby="spray-title">
+      <div class="wrap">
+        <div class="sec-head">
+          <div>
+            <span class="label">Why we built it · October 2025</span>
+            <h2 class="h2" id="spray-title"><span class="dim">Spray water around a monitor,</span>and its number drops. The air doesn't.</h2>
+          </div>
+          <p class="sub">In October 2025, water tankers were filmed spraying near a Delhi monitor. Wet the air at the inlet and the dust settles right there, so the monitor reads cleaner than the air the city is breathing.</p>
+        </div>
+        <div class="window spraywin">
+          <div class="chrome"><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div><span class="url">illustration / water tanker at a monitor</span><button class="sp-toggle" id="spray-toggle" type="button" aria-pressed="false">Pause</button></div>
+          <div class="spray-stage" id="spray-stage">
+            <div class="sp-tag me" id="sp-me"><span class="who">This monitor</span><b id="sp-me-v">310</b><small>µg/m³ PM2.5</small><span class="sp-flag" id="sp-flag" hidden><span data-pill="flag"></span></span></div>
+            <div class="sp-tag nb" id="sp-nb"><span class="who">Monitors nearby</span><b id="sp-nb-v">302</b><small>µg/m³ PM2.5</small></div>
+          </div>
+          <div class="sp-foot">
+            <p class="sp-caption" id="sp-caption" aria-live="polite"><b>1 · Before.</b> The monitor and the monitors around it agree: about 310 µg/m³ PM2.5.</p>
+            <ol class="sp-steps" id="sp-steps" aria-label="Steps">
+              <li><button type="button">1</button></li><li><button type="button">2</button></li><li><button type="button">3</button></li><li><button type="button">4</button></li><li><button type="button">5</button></li>
+            </ol>
+          </div>
+        </div>
+        <p class="footnote">An illustration, not footage, and the numbers are examples. We did test whether the monitors named in the October 2025 reports show this pattern. On a method fixed before looking, they didn't stand out (Anand Vihar ranked 6th and Jahangirpuri 13th of 38). So a flag on this site means a monitor's numbers don't add up, never that someone sprayed it.</p>
+      </div>
+    </section>
+
     <section class="sec story" id="story" aria-labelledby="story-title">
       <div class="wrap">
         <div class="sec-head center">
@@ -424,5 +450,6 @@
 <script src="vendor/chart.umd.js"></script>
 <script src="app.js"></script>
 <script type="module" src="scene3d.js"></script>
+<script type="module" src="spray3d.js"></script>
 </body>
 </html>

@@ -465,3 +465,27 @@ html.lock, html.lock body { overflow: hidden; }
 .combine h3 { margin: 0; font-size: 18px; letter-spacing: -.02em; font-weight: 600; }
 .combine p { margin: 0; color: var(--ink-2); max-width: 90ch; }
 .combine b { color: var(--ink); }
+
+/* ---------- the October 2025 illustration ---------- */
+.spray-stage { position: relative; height: clamp(360px, 46vw, 560px); background: #e8e7e4; overflow: hidden; transition: opacity .4s; }
+.spray-stage canvas { display: block; width: 100%; height: 100%; }
+.spray-stage.blink { opacity: .35; }
+.spray-stage.nogl { height: auto; min-height: 120px; }
+.sp-tag { position: absolute; left: 0; top: 0; display: grid; justify-items: center; gap: 1px; padding: 8px 12px 9px; margin-top: -10px; background: rgba(255, 255, 255, .92); border: 1px solid var(--line-2); border-radius: 12px; box-shadow: var(--shadow); pointer-events: none; white-space: nowrap; will-change: transform; }
+.sp-tag::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 10px; height: 10px; background: inherit; border-right: 1px solid var(--line-2); border-bottom: 1px solid var(--line-2); transform: translateX(-50%) rotate(45deg); }
+.sp-tag .who { font: 11px var(--mono); color: var(--ink-3); letter-spacing: .03em; }
+.sp-tag b { font: 500 26px/1.05 var(--mono); letter-spacing: -.04em; font-variant-numeric: tabular-nums; color: var(--ink); transition: color .3s; }
+.sp-tag small { font: 10.5px var(--mono); color: var(--ink-3); }
+.sp-tag.me.low b { color: #2f6fa8; }
+.sp-flag { margin-top: 5px; }
+.spray-stage.nogl .sp-tag { display: none; }
+.sp-toggle { margin-left: auto; font: 12px var(--mono); color: var(--ink-2); background: var(--surface); border: 1px solid var(--line-2); border-radius: 8px; padding: 4px 10px; cursor: pointer; }
+.sp-toggle:hover { border-color: var(--ink-3); color: var(--ink); }
+.sp-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; padding: 14px 18px; border-top: 1px solid var(--line); background: var(--surface); }
+.sp-caption { margin: 0; flex: 1 1 320px; min-width: 0; font-size: 15px; color: var(--ink-2); min-height: 2.9em; }
+.sp-caption b { color: var(--ink); font-weight: 600; }
+.sp-steps { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; }
+.sp-steps button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line-2); background: var(--surface); font: 12px var(--mono); color: var(--ink-3); cursor: pointer; }
+.sp-steps button.done { color: var(--ink-2); background: var(--surface-3); }
+.sp-steps button[aria-current="true"] { background: var(--ink); border-color: var(--ink); color: #fff; }
+.spray .footnote { max-width: 90ch; }
