@@ -5,92 +5,278 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ground Truth: which Delhi air-quality numbers can you trust?</title>
 <meta name="description" content="Every air-quality monitor in Delhi and NCR, checked every hour against its neighbours, its own history and physics. Open data, open code.">
+<meta name="theme-color" content="#f3f3f4">
 <meta property="og:title" content="Ground Truth">
-<meta property="og:description" content="Which of Delhi's air-quality numbers can you trust? Every monitor checked every hour.">
-<meta property="og:image" content="og.png">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23111'/%3E%3Ctext x='16' y='21' font-family='monospace' font-size='13' font-weight='700' fill='%23fff' text-anchor='middle'%3EGT%3C/text%3E%3C/svg%3E">
+<meta property="og:description" content="The air is already being measured. That's not the same as true.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2308090a'/%3E%3Cpath d='M9 21h14M16 21V9' stroke='%23f5f5f2' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='9' r='3' fill='%2369d39a'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="theme.css">
 </head>
-<body>
-<header class="wrap top">
-  <div class="mark" aria-hidden="true">GT</div>
-  <span class="brand">Ground Truth</span>
-  <nav>
-    <a href="#how" class="hide-sm">How it works</a>
-    <a href="#faq" class="hide-sm">FAQ</a>
-    <span class="fresh" id="fresh">Loading data…</span>
-  </nav>
+<body id="top">
+
+<!-- the fog scene, drawn once and used in the hero and the closing -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.15" result="a"/>
+      <feComposite in="SourceGraphic" in2="a" operator="in"/>
+    </filter>
+    <filter id="haze" x="-10%" y="-50%" width="120%" height="200%"><feGaussianBlur stdDeviation="16"/></filter>
+    <filter id="soft"><feGaussianBlur stdDeviation="1.2"/></filter>
+    <linearGradient id="hill1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#55575b"/><stop offset="1" stop-color="#1c1d1f"/></linearGradient>
+    <linearGradient id="hill2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b3c3f"/><stop offset="1" stop-color="#121314"/></linearGradient>
+    <linearGradient id="fogband" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f4f5" stop-opacity="0"/><stop offset=".5" stop-color="#f4f4f5" stop-opacity=".95"/><stop offset="1" stop-color="#f4f4f5" stop-opacity="0"/></linearGradient>
+    <symbol id="scene-art" viewBox="0 0 1440 520" preserveAspectRatio="xMidYMax slice">
+      <g fill="#c4c5c8" filter="url(#soft)">
+        <path d="M0 432h40v-26h22v-14h30v40h26v-22h34v22h20v-34h28v34h36v-18h40v18h30v-28h24v28h18v-40h26v40H0z"/>
+        <path d="M520 432v-20h24v-16h34v36h30v-24h26v24h40v-30h22v30h20v-14h38v14h26v-36h28v36h34v-20h24v20h40v-26h30v26h22v-40h26v40h36v-16h40v16h28v-28h34v28h32v-22h28v22h30v-34h30v34h36v-18h40v18h24v-26h22v26h28v-12H520z"/>
+      </g>
+      <!-- Qutub Minar -->
+      <g fill="#a9aaae">
+        <path d="M402 434 409 250h16l7 184z"/>
+        <path d="M406 258h22v4h-22zM404 312h26v4h-26zM403 366h28v4h-28zM402 410h30v4h-30z" fill="#9b9ca0"/>
+        <path d="M411 250h12l-2-14h-8z"/><circle cx="417" cy="233" r="4"/>
+      </g>
+      <!-- Lotus Temple -->
+      <g fill="#b3b4b8">
+        <path d="M640 434c6-26 22-44 38-52-10 16-14 34-12 52z"/>
+        <path d="M768 434c-6-26-22-44-38-52 10 16 14 34 12 52z"/>
+        <path d="M664 434c2-34 18-58 40-72 22 14 38 38 40 72z" fill="#a6a7ab"/>
+        <path d="M684 434c0-28 8-50 20-64 12 14 20 36 20 64z" fill="#9c9da1"/>
+        <path d="M626 434h156v6H626z"/>
+      </g>
+      <!-- India Gate -->
+      <g fill="#a3a4a8">
+        <path d="M932 436v-98h96v98h-30v-46a18 18 0 0 0-36 0v46z"/>
+        <path d="M940 322h80v16h-80zM948 312h64v10h-64z"/>
+        <path d="M966 312a14 10 0 0 1 28 0z"/>
+      </g>
+      <rect class="drift" x="-120" y="372" width="1680" height="96" fill="url(#fogband)" filter="url(#haze)"/>
+      <path d="M0 520V452c160-30 320-6 470 4 170 12 300-28 470-26 190 2 330 24 500 10V520z" fill="url(#hill1)"/>
+      <path d="M0 520V452c160-30 320-6 470 4 170 12 300-28 470-26 190 2 330 24 500 10V520z" fill="#8a8b8f" filter="url(#grain)" opacity=".55"/>
+      <!-- the monitor: a mast with a sensor box -->
+      <g transform="translate(1198 0)">
+        <path d="M30 448V318" stroke="#2b2c2f" stroke-width="3"/>
+        <path d="M30 448 14 470M30 448l16 22" stroke="#2b2c2f" stroke-width="2.2"/>
+        <rect x="12" y="320" width="36" height="28" rx="3" fill="#3a3b3e"/>
+        <path d="M16 330h28M16 336h28M16 342h28" stroke="#55575b" stroke-width="1.6"/>
+        <path d="M34 314l26-12" stroke="#2b2c2f" stroke-width="2"/><path d="M50 296l22-8 4 10-22 8z" fill="#3a3b3e"/>
+        <circle cx="30" cy="312" r="3.2" fill="#69d39a"/><circle cx="30" cy="312" r="7" fill="#69d39a" opacity=".22"/>
+      </g>
+      <path d="M0 520V488c140-22 260-30 380-20 120 10 190 34 330 32V520z" fill="url(#hill2)"/>
+      <path d="M760 520c120-34 280-62 420-74 110-10 190-4 260 4V520z" fill="url(#hill2)"/>
+      <path d="M0 520V488c140-22 260-30 380-20 120 10 190 34 330 32V520zM760 520c120-34 280-62 420-74 110-10 190-4 260 4V520z" fill="#6b6c70" filter="url(#grain)" opacity=".5"/>
+      <g fill="#1d1e20">
+        <circle cx="70" cy="478" r="22"/><circle cx="98" cy="470" r="28"/><circle cx="128" cy="480" r="20"/><circle cx="52" cy="486" r="16"/>
+        <circle cx="1352" cy="436" r="18"/><circle cx="1376" cy="428" r="24"/><circle cx="1402" cy="438" r="17"/>
+      </g>
+      <rect class="drift slow" x="-160" y="452" width="1760" height="70" fill="url(#fogband)" filter="url(#haze)" opacity=".85"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="wordmark" href="#top" aria-label="Ground Truth home">ground<b>truth</b></a>
+    <nav aria-label="Sections">
+      <a href="#live">Live map</a>
+      <a href="#how">How it works</a>
+      <a href="#proof">Proof</a>
+      <a href="#faq">FAQ</a>
+      <span class="fresh" id="fresh">Loading data…</span>
+    </nav>
+  </div>
 </header>
 
 <main>
-  <section class="wrap hero">
-    <div class="hero-main">
-    <div class="k rise">Delhi + NCR · every monitor · every hour</div>
-    <h1 class="rise">Which air-quality numbers can you trust?</h1>
-    <p class="lede rise">Before you move assembly outdoors or step out for a walk, check the station you rely on. We compare every monitor with the stations around it, with its own last three weeks, and with physics, and tell you in plain words whether its number adds up.</p>
-    <div class="cta rise">
-      <div class="search" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-owns="search-list">
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.25" stroke="currentColor" stroke-width="1.5"/><path d="m11 11 3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        <label class="sr-only" for="search">Find your station</label>
-        <input id="search" type="search" placeholder="Find your station, e.g. Anand Vihar" autocomplete="off" aria-autocomplete="list" aria-controls="search-list">
-        <ul id="search-list" role="listbox" hidden></ul>
-      </div>
-      <a class="btn primary" href="?demo=1" id="tour-btn">Take the 60-second tour <span class="arr">→</span></a>
-    </div>
-    </div>
-    <aside class="card example rise" id="example" hidden aria-label="Example station"></aside>
-    <div class="stats" id="stats" aria-live="polite">
-      <div class="stat"><b class="skel" style="width:60%">&nbsp;</b><span>stations checked</span></div>
-      <div class="stat"><b class="skel" style="width:40%">&nbsp;</b><span>don't add up</span></div>
-      <div class="stat"><b class="skel" style="width:40%">&nbsp;</b><span>worth a look</span></div>
-      <div class="stat"><b>30/30</b><span>planted anomalies caught in tests</span></div>
-    </div>
-  </section>
-
-  <section class="wrap board" id="board" aria-label="Map and station details">
-    <div class="card mapcard">
-      <div id="map" role="region" aria-label="Map of monitoring stations"></div>
-      <div class="legend" id="legend"></div>
-    </div>
-    <div class="card panel" id="panel" aria-live="polite">
-      <div class="empty">
-        <svg width="44" height="44" viewBox="0 0 44 44" fill="none" aria-hidden="true"><circle cx="22" cy="22" r="20" stroke="#d6d5ce" stroke-width="1.5" stroke-dasharray="3 4"/><circle cx="22" cy="22" r="5" fill="#2457d6"/></svg>
-        <h2>Pick a station</h2>
-        <p>Click a dot on the map, or search for the station nearest you.</p>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap copy">
+      <span class="label rise" id="hero-label">Delhi + NCR · every monitor · checked hourly</span>
+      <h1 id="hero-title" class="rise"><span class="dim">The air is already being measured.</span>That's not the same as true.</h1>
+      <p class="lede rise">Ground Truth checks every air-quality monitor in Delhi against the stations around it, its own past and physics, and tells you in plain words whether its number adds up.</p>
+      <div class="cta rise">
+        <div class="search" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-owns="search-list">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.25" stroke="currentColor" stroke-width="1.5"/><path d="m11 11 3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <label class="sr-only" for="search">Find your station</label>
+          <input id="search" type="search" placeholder="Find your station, e.g. Anand Vihar" autocomplete="off" aria-autocomplete="list" aria-controls="search-list">
+          <ul id="search-list" role="listbox" hidden></ul>
+        </div>
+        <a class="btn outline" href="?demo=1" id="tour-btn">Watch the tour <span class="arr">↗</span></a>
       </div>
     </div>
+    <div class="scene" aria-hidden="true"><svg><use href="#scene-art"/></svg></div>
   </section>
 
-  <section class="how" id="how">
+  <aside class="example" id="example" hidden aria-label="An example station right now"></aside>
+
+  <section class="proofbar" aria-label="Today's numbers">
     <div class="wrap">
-      <div class="k">How it works</div>
-      <h2>Three questions, asked of every monitor, every hour.</h2>
-      <div class="trio">
-        <div class="card"><div class="k">01 · Physics</div><h3>Can this reading be real?</h3><p>Fine dust (PM2.5) is part of all dust (PM10), so it can never be larger. We also catch values out of range and sensors stuck on the same number for hours.</p></div>
-        <div class="card"><div class="k">02 · Neighbours</div><h3>Does it agree with the stations around it?</h3><p>We compare it, hour by hour, with the four nearest stations within 12 km. A station whose daytime readings fall away from its neighbours, more than daytime air mixing explains, stands out.</p></div>
-        <div class="card"><div class="k">03 · History</div><h3>Has it suddenly changed?</h3><p>We compare the last 7 days with the 3 weeks before, for dust and humidity. A sudden shift against its own past is worth a look.</p></div>
-      </div>
-      <div class="limits">
-        <strong>What a flag means, and what it doesn't.</strong> A flag means a station's numbers don't add up against physics, its neighbours or its own past. It does not mean anyone tampered with it: sensors drift, break and get moved. Daytime air mixing also makes polluted spots look cleaner by day, so we correct for it. Data comes from the CPCB and DPCC monitors via <a href="https://openaq.org">OpenAQ</a>, refreshed every hour; the time of the latest reading is at the top of the page.
-      </div>
-      <div class="faq" id="faq">
-        <details><summary>Which number should I use if my station is flagged?</summary><p>Use what the four nearest stations read right now. The station panel shows it next to your station's own reading. It is a median of real monitors, not an official reading.</p></details>
-        <details><summary>Does a flag mean someone sprayed water near the monitor?</summary><p>No. We tested whether the stations named in the news in October 2025 show a spraying pattern, and with our method they don't stand out. A flag only says the numbers don't add up.</p></details>
-        <details><summary>How do you know the checks work?</summary><p>We planted a 40% daytime drop in real data at each quiet station, one at a time. It was flagged 30 times out of 30, and it newly flagged 3 other stations across all 30 runs. The tests run on every change to the code.</p></details>
-        <details><summary>Where does it run?</summary><p>On AWS: EventBridge runs a Lambda function every hour that reads new data from OpenAQ, runs the checks and writes the results to S3, served through CloudFront.</p></details>
+      <span class="label">Checked every hour, from the live data</span>
+      <div class="stats" id="stats" aria-live="polite">
+        <div class="stat"><b class="skel">52</b><span>stations checked</span></div>
+        <div class="stat"><b class="skel">0</b><span>don't add up</span></div>
+        <div class="stat"><b class="skel">0</b><span>worth a look</span></div>
+        <div class="stat"><b>30/30</b><span>planted anomalies caught in tests</span></div>
       </div>
     </div>
+  </section>
+
+  <div class="night">
+    <section class="sec" id="live" aria-labelledby="live-title">
+      <div class="wrap">
+        <div class="sec-head">
+          <div>
+            <span class="label">01 · Live map</span>
+            <h2 class="h2" id="live-title">Every monitor,<span class="dim">with a plain answer.</span></h2>
+          </div>
+          <p class="sub">Click a station. You get its reading next to what the four stations around it read right now, and the evidence behind its status.</p>
+        </div>
+        <div class="window">
+          <div class="chrome"><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div><span class="url">groundtruth / delhi / live</span><span class="live" id="chrome-live">Live</span></div>
+          <div class="app">
+            <div class="mapcol">
+              <div id="map" role="region" aria-label="Map of monitoring stations"></div>
+              <div class="legend" id="legend"></div>
+            </div>
+            <div class="panel" id="panel" aria-live="polite">
+              <div class="empty">
+                <svg width="46" height="46" viewBox="0 0 46 46" fill="none" aria-hidden="true"><circle cx="23" cy="23" r="21" stroke="#34353a" stroke-width="1.5" stroke-dasharray="3 4"/><circle cx="23" cy="23" r="5" fill="#f5f5f2"/></svg>
+                <h2>Pick a station</h2>
+                <p>Click a marker on the map, or search for the station nearest you.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="how" aria-labelledby="how-title">
+      <div class="wrap">
+        <div class="sec-head">
+          <div>
+            <span class="label">02 · How it works</span>
+            <h2 class="h2" id="how-title">Three questions,<span class="dim">every monitor, every hour.</span></h2>
+          </div>
+        </div>
+        <div class="trio">
+          <article>
+            <div class="glyph" aria-hidden="true"><svg width="150" height="60" viewBox="0 0 150 60"><rect x="30" y="8" width="34" height="44" rx="4" fill="#26272b"/><rect x="30" y="30" width="34" height="22" rx="4" fill="#6e7076"/><rect x="86" y="8" width="34" height="44" rx="4" fill="#26272b"/><rect x="86" y="2" width="34" height="50" rx="4" fill="none" stroke="#f0564f" stroke-width="1.6" stroke-dasharray="3 3"/></svg></div>
+            <span class="num">01 · Physics</span>
+            <h3>Can this reading be real?</h3>
+            <p>Fine dust (PM2.5) is part of all dust (PM10), so it can never be larger. We also catch values out of range and sensors stuck on one number for hours.</p>
+          </article>
+          <article>
+            <div class="glyph" aria-hidden="true"><svg width="150" height="60" viewBox="0 0 150 60"><g stroke="#34353a" stroke-width="1.2"><path d="M75 30 40 12M75 30l35-18M75 30 40 48M75 30l35 18"/></g><circle cx="40" cy="12" r="5" fill="#6e7076"/><circle cx="110" cy="12" r="5" fill="#6e7076"/><circle cx="40" cy="48" r="5" fill="#6e7076"/><circle cx="110" cy="48" r="5" fill="#6e7076"/><circle cx="75" cy="30" r="7" fill="#f5f5f2"/></svg></div>
+            <span class="num">02 · Neighbours</span>
+            <h3>Does it agree with the stations around it?</h3>
+            <p>Hour by hour, against the four nearest stations within 12 km. A station whose daytime readings fall away from its neighbours, more than daytime mixing explains, stands out.</p>
+          </article>
+          <article>
+            <div class="glyph" aria-hidden="true"><svg width="150" height="60" viewBox="0 0 150 60"><path d="M10 34c10-4 18 4 28 0s18-6 28-2 16 2 24 0" stroke="#6e7076" stroke-width="2" fill="none"/><path d="M90 32c8-2 10-18 20-20s16 4 30 2" stroke="#f5f5f2" stroke-width="2" fill="none"/><path d="M90 6v48" stroke="#34353a" stroke-dasharray="3 3"/></svg></div>
+            <span class="num">03 · History</span>
+            <h3>Has it suddenly changed?</h3>
+            <p>The last 7 days against the 3 weeks before, for dust and humidity. A sudden shift against its own past is worth a look.</p>
+          </article>
+        </div>
+        <div class="limits"><strong>What a flag means, and what it doesn't.</strong> A flag means a station's numbers don't add up against physics, its neighbours or its own past. It does not mean anyone tampered with it: sensors drift, break and get moved. Daytime air mixing makes polluted spots look cleaner by day, so we correct for it. Data comes from the CPCB and DPCC monitors via <a href="https://openaq.org">OpenAQ</a>, refreshed every hour.</div>
+      </div>
+    </section>
+
+    <section class="sec" id="proof" aria-labelledby="proof-title">
+      <div class="wrap">
+        <div class="sec-head">
+          <div>
+            <span class="label">03 · Proof</span>
+            <h2 class="h2" id="proof-title">Proof, not promises.<span class="dim">Every claim has a test.</span></h2>
+          </div>
+          <p class="sub">We planted a 40% daytime drop in real Delhi data, one quiet station at a time, and checked that the tool catches it without blaming the stations around it.</p>
+        </div>
+        <div class="proof">
+          <div class="bignum"><span class="label">Planted anomalies caught</span><b>30/30</b><p>Across all 52 stations in November 2025. The drop newly flagged 3 other stations across all 30 runs.</p></div>
+          <div class="term" role="img" aria-label="Test run output">
+            <div class="chrome"><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div><span class="url">make test</span><span></span></div>
+<pre><span class="dim">$ pytest -v tests   # excerpt</span>
+tests/test_scorer.py::test_quiet_station_starts_ok <span class="ok">PASSED</span>
+tests/test_scorer.py::test_planted_daytime_drop_is_flagged <span class="ok">PASSED</span>
+tests/test_scorer.py::test_every_quiet_station_is_caught <span class="ok">PASSED</span>
+tests/test_scorer.py::test_planting_one_station_does_not_flag_the_others <span class="ok">PASSED</span>
+tests/test_scorer.py::test_daytime_window_matters <span class="ok">PASSED</span>
+tests/test_scorer.py::test_pm25_above_pm10_is_flagged <span class="ok">PASSED</span>
+tests/test_scorer.py::test_stuck_sensor_is_flagged <span class="ok">PASSED</span>
+tests/test_scorer.py::test_copy_never_accuses <span class="ok">PASSED</span>
+tests/test_ingest.py::test_rate_limit_is_retried <span class="ok">PASSED</span>
+<span class="dim">…</span>
+<span class="ok">22 passed</span>, 1 skipped in 4.6s</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="aws" aria-labelledby="aws-title">
+      <div class="wrap">
+        <div class="sec-head">
+          <div>
+            <span class="label">04 · Built on AWS</span>
+            <h2 class="h2" id="aws-title">One template.<span class="dim">Runs itself every hour.</span></h2>
+          </div>
+          <p class="sub">Deployed with AWS SAM in us-east-1, next to the public OpenAQ archive it reads from.</p>
+        </div>
+        <div class="arch">
+          <div><b>Amazon EventBridge</b><span>Starts the check every hour</span></div>
+          <div><b>AWS Lambda</b><span>Fetches readings, runs the three checks</span></div>
+          <div><b>Parameter Store</b><span>Keeps the OpenAQ key encrypted</span></div>
+          <div><b>Amazon S3</b><span>History cache and the results as JSON</span></div>
+          <div><b>Amazon CloudFront</b><span>Serves this site and the data</span></div>
+          <div><b>AWS SAM</b><span>The whole stack in one file</span></div>
+          <div><b>Open Data on AWS</b><span>OpenAQ's public archive, for history</span></div>
+          <div><b>GitHub Actions</b><span>Lint and tests on every change</span></div>
+        </div>
+        <p class="flow">EventBridge → Lambda (+ Parameter Store, OpenAQ API) → S3 → CloudFront → you</p>
+      </div>
+    </section>
+
+    <section class="sec" id="faq" aria-labelledby="faq-title">
+      <div class="wrap">
+        <div class="sec-head"><div><span class="label">05 · FAQ</span><h2 class="h2" id="faq-title">Questions,<span class="dim">answered plainly.</span></h2></div></div>
+        <div class="faq">
+          <details><summary>Which number should I use if my station is flagged?</summary><p>Use what the four nearest stations read right now. The station panel shows it next to your station's own reading. It is a median of real monitors, not an official reading.</p></details>
+          <details><summary>Does a flag mean someone sprayed water near the monitor?</summary><p>No. We tested whether the stations named in the news in October 2025 show a spraying pattern, and with our method they don't stand out. A flag only says the numbers don't add up.</p></details>
+          <details><summary>How fresh is the data?</summary><p>The check runs every hour on new readings from the CPCB and DPCC monitors, via OpenAQ. The time of the latest reading is at the top of the page.</p></details>
+          <details><summary>How do you know the checks work?</summary><p>We planted a 40% daytime drop in real data at each quiet station, one at a time. It was flagged 30 times out of 30, and newly flagged 3 other stations across all 30 runs. The tests run on every change to the code.</p></details>
+          <details><summary>Is the code open?</summary><p>Yes. Everything, including the data analysis behind these checks, is on GitHub.</p></details>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <section class="closing" aria-labelledby="close-title">
+    <div class="wrap">
+      <h2 id="close-title"><span class="dim">Before you act on a number,</span>check that it adds up.</h2>
+      <p>Find the station you rely on. It takes ten seconds.</p>
+      <a class="btn light" href="#top" id="close-cta">Find your station <span class="arr">↑</span></a>
+    </div>
+    <div class="scene" aria-hidden="true"><svg><use href="#scene-art"/></svg></div>
   </section>
 </main>
 
 <footer>
   <div class="wrap">
-    <span>Data: CPCB / DPCC monitors via <a href="https://openaq.org">OpenAQ</a>. Map © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>.</span>
-    <span><a href="https://github.com/thegoodengineers/ground-truth">Open source on GitHub</a> · Environmental Hacks 2026</span>
+    <div>
+      <p class="big">groundtruth</p>
+      <p>Which of Delhi's air-quality numbers can you trust? Environmental Hacks 2026, Air track.</p>
+    </div>
+    <div>
+      <h4>Data</h4>
+      <ul><li>CPCB / DPCC monitors via <a href="https://openaq.org">OpenAQ</a></li><li>Map © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a></li></ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul><li><a href="https://github.com/thegoodengineers/ground-truth">GitHub</a></li><li><a href="?demo=1">60-second tour</a></li><li><a href="#how">How it works</a></li></ul>
+    </div>
   </div>
 </footer>
 

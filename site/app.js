@@ -34,10 +34,10 @@
     const c = { ok: "var(--ok)", watch: "var(--watch)", flag: "var(--flag)", nodata: "var(--nodata)" }[status];
     const s = size;
     const body = {
-      ok: `<circle cx="7" cy="7" r="5.5" fill="${c}" stroke="#fff" stroke-width="1.5"/><path d="M4.4 7.2l1.8 1.8 3.4-3.6" stroke="#fff" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
-      watch: `<path d="M7 1.2 13 12.2H1z" fill="${c}" stroke="#fff" stroke-width="1.3" stroke-linejoin="round"/><path d="M7 5.2v3.3" stroke="#3a2600" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="10.3" r=".85" fill="#3a2600"/>`,
-      flag: `<rect x="2.2" y="2.2" width="9.6" height="9.6" rx="1.5" transform="rotate(45 7 7)" fill="${c}" stroke="#fff" stroke-width="1.3"/><path d="M7 4.2v3.6" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><circle cx="7" cy="9.9" r=".9" fill="#fff"/>`,
-      nodata: `<circle cx="7" cy="7" r="5" fill="#fff" stroke="${c}" stroke-width="1.8" stroke-dasharray="2.4 1.8"/>`,
+      ok: `<circle cx="7" cy="7" r="5.5" fill="${c}" stroke="#0a0b0c" stroke-width="1.2"/><path d="M4.4 7.2l1.8 1.8 3.4-3.6" stroke="#0a0b0c" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
+      watch: `<path d="M7 1.2 13 12.2H1z" fill="${c}" stroke="#0a0b0c" stroke-width="1.1" stroke-linejoin="round"/><path d="M7 5.2v3.3" stroke="#3a2600" stroke-width="1.4" stroke-linecap="round"/><circle cx="7" cy="10.3" r=".85" fill="#3a2600"/>`,
+      flag: `<rect x="2.2" y="2.2" width="9.6" height="9.6" rx="1.5" transform="rotate(45 7 7)" fill="${c}" stroke="#0a0b0c" stroke-width="1.1"/><path d="M7 4.2v3.6" stroke="#0a0b0c" stroke-width="1.5" stroke-linecap="round"/><circle cx="7" cy="9.9" r=".9" fill="#0a0b0c"/>`,
+      nodata: `<circle cx="7" cy="7" r="5" fill="#17181b" stroke="${c}" stroke-width="1.8" stroke-dasharray="2.4 1.8"/>`,
     }[status];
     return `<svg class="ico" width="${s}" height="${s}" viewBox="0 0 14 14" aria-hidden="true">${body}</svg>`;
   }
@@ -61,6 +61,7 @@
       $("#fresh").classList.add("stale");
       $("#panel").innerHTML = `<div class="empty"><h2>Data is updating</h2><p>We couldn't load the latest readings. Try again in a minute.</p><button class="btn ghost" onclick="location.reload()">Try again</button></div>`;
       $("#stats").querySelectorAll(".skel").forEach((el) => { el.classList.remove("skel"); el.textContent = "–"; });
+      $("#chrome-live").textContent = "Offline";
       mark("error");
       return;
     }
@@ -72,6 +73,7 @@
     renderExample();
     setupSearch();
     window.addEventListener("hashchange", fromHash);
+    $("#close-cta")?.addEventListener("click", (e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); setTimeout(() => $("#search").focus(), 500); });
     mark("loaded");
     if (new URLSearchParams(location.search).get("demo") === "1") tour();
     else fromHash();
@@ -90,16 +92,19 @@
     el.textContent = `Data through ${when} IST`;
     el.title = `Generated ${latest.generated_at}`;
     el.classList.toggle("stale", hours > 3);
+    const live = $("#chrome-live");
+    if (live) live.textContent = `Data through ${when}`;
   }
 
   function renderStats() {
     const n = latest.stations.length;
     const count = (st) => latest.stations.filter((s) => s.status === st).length;
     const stats = $("#stats").children;
-    const set = (i, v) => { const b = stats[i].querySelector("b"); b.classList.remove("skel"); b.style.width = ""; b.textContent = v; };
+    const set = (i, v) => { const b = stats[i].querySelector("b"); b.classList.remove("skel"); b.textContent = v; };
     set(0, n);
     set(1, count("flag"));
     set(2, count("watch"));
+    $("#hero-label").textContent = `Delhi + NCR · ${n} monitors · checked hourly`;
   }
 
   // the hero shows the product: the clearest current case, straight from the data
@@ -115,16 +120,12 @@
     if (!s) { el.remove(); return; }
     const c = CHECKS.map(([k, name]) => [name, s.checks[k]]).find(([, v]) => v.status === s.status) || ["", { detail: "" }];
     el.innerHTML = `
-      <div class="k">Right now, for example</div>
+      <span class="label">Right now, for example</span>
       <h3>${esc(short(s.name))}</h3>
       ${pill(s.status)}
-      <div class="now" style="margin:14px 0 10px">
-        <div><small>This station, PM2.5</small><b>${fmt(s.latest?.pm25)}<small> µg/m³</small></b></div>
-        <div><small>4 nearest stations, PM2.5</small><b>${fmt(s.neighbours_latest?.pm25)}<small> µg/m³</small></b></div>
-      </div>
-      <p class="ex-why"><b>${esc(c[0])}:</b> ${esc(c[1].detail)}</p>
-      <button class="btn ghost" type="button" data-open="${s.id}">See the evidence <span class="arr">→</span></button>`;
-    el.querySelector("[data-open]").addEventListener("click", () => { select(s.id, { fly: true, spot: CHECKS.find(([k]) => s.checks[k].status === s.status)?.[0] }); $("#board").scrollIntoView({ behavior: "smooth", block: "start" }); });
+      <div class="nums">This station <b>${fmt(s.latest?.pm25)}</b> µg/m³ PM2.5 · the 4 stations around it <b>${fmt(s.neighbours_latest?.pm25)}</b></div>
+      <button class="btn dark" type="button" data-open="${s.id}">See why <span class="arr">→</span></button>`;
+    el.querySelector("[data-open]").addEventListener("click", () => { select(s.id, { fly: true, spot: CHECKS.find(([k]) => s.checks[k].status === s.status)?.[0] }); $("#live").scrollIntoView({ behavior: "smooth", block: "start" }); });
     el.hidden = false;
   }
 
@@ -138,7 +139,7 @@
 
   function renderMap() {
     map = L.map("map", { zoomControl: true, scrollWheelZoom: false, attributionControl: true }).setView([28.62, 77.18], 10);
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
       subdomains: "abcd", maxZoom: 18,
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a>',
     }).addTo(map);
@@ -214,7 +215,7 @@
     }).join("");
     const opts = Object.entries(PARAMS).map(([k, p]) => `<option value="${k}"${k === param ? " selected" : ""}>${p.name}</option>`).join("");
     return `
-      <div class="k">${s.region === "NCR" ? "NCR" : "Delhi"} · OpenAQ location ${s.id}</div>
+      <span class="label">${s.region === "NCR" ? "NCR" : "Delhi"} · OpenAQ location ${s.id}</span>
       <h2>${esc(short(s.name))}</h2>
       <div class="meta">${pill(s.status)}</div>
       <div class="now">
@@ -226,15 +227,15 @@
       <ul class="checks">${checks}</ul>
       <div class="chartbox">
         <div style="display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap">
-          <div><h3>Hour by hour, against its neighbours</h3><p class="sub">Above zero: this station reads higher than the 4 nearest stations at that hour.</p></div>
+          <div><h3>Hour by hour, against its neighbours</h3><p class="csub">Above zero: this station reads higher than the 4 nearest stations at that hour.</p></div>
           <label class="sr-only" for="param">Measure</label>
-          <select id="param" style="font:13px var(--sans);padding:5px 8px;border-radius:8px;border:1px solid var(--line-2);background:#fff">${opts}</select>
+          <select id="param">${opts}</select>
         </div>
         <div class="chartwrap">${doc ? `<canvas id="chart" role="img" aria-label="Hour-of-day gap against neighbours"></canvas>` : `<div class="empty" style="min-height:220px"><p>${doc === null ? "Loading the chart…" : ""}</p></div>`}</div>
         <div class="chartlegend"><span><i style="background:var(--series-7d)"></i>Last 7 days</span><span><i style="background:var(--series-28d)"></i>Last 28 days</span><span><i class="band"></i>11:00-17:00</span><button class="linkish" id="as-table" type="button">Show as table</button></div>
         <div id="tablebox"></div>
       </div>
-      ${nb.length ? `<div class="nbs"><span class="k" style="width:100%">Compared with</span>${nb.map((n) => `<button data-goto="${n.id}" type="button">${icon(n.status, 11)}${esc(short(n.name))}</button>`).join("")}</div>` : ""}
+      ${nb.length ? `<div class="nbs"><span class="label">Compared with</span>${nb.map((n) => `<button data-goto="${n.id}" type="button">${icon(n.status, 11)}${esc(short(n.name))}</button>`).join("")}</div>` : ""}
     `;
   }
 
@@ -252,7 +253,7 @@
       const x0 = x.getPixelForValue(11) - (x.getPixelForValue(1) - x.getPixelForValue(0)) / 2;
       const x1 = x.getPixelForValue(16) + (x.getPixelForValue(1) - x.getPixelForValue(0)) / 2;
       ctx.fillRect(x0, a.top, x1 - x0, a.bottom - a.top);
-      ctx.strokeStyle = "#b7b6ae"; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+      ctx.strokeStyle = "#55575c"; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
       const z = y.getPixelForValue(0);
       if (z >= a.top && z <= a.bottom) { ctx.beginPath(); ctx.moveTo(a.left, z); ctx.lineTo(a.right, z); ctx.stroke(); }
       ctx.restore();
@@ -280,7 +281,7 @@
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: "#111", titleFont: { family: "JetBrains Mono", size: 12 }, bodyFont: { family: "Inter", size: 12.5 }, padding: 10,
+            backgroundColor: "#17181b", borderColor: "#34353a", borderWidth: 1, titleFont: { family: "Geist Mono", size: 12 }, bodyFont: { family: "Geist", size: 12.5 }, padding: 10,
             callbacks: {
               title: (items) => `${String(items[0].label).padStart(2, "0")}:00 IST`,
               label: (it) => ` ${it.dataset.label}: ${it.raw == null ? "no data" : `${it.raw > 0 ? "+" : ""}${it.raw.toFixed(unit === "%" ? 0 : 1)}${unit === "%" ? "%" : " pts"}`}`,
@@ -288,8 +289,8 @@
           },
         },
         scales: {
-          x: { grid: { display: false }, ticks: { font: { family: "JetBrains Mono", size: 11 }, color: "#6f6f69", callback: (v) => (v % 3 === 0 ? `${String(v).padStart(2, "0")}h` : "") }, border: { color: "#d6d5ce" } },
-          y: { grid: { color: "#efeee9" }, border: { display: false }, ticks: { font: { family: "JetBrains Mono", size: 11 }, color: "#6f6f69", callback: (v) => `${v > 0 ? "+" : ""}${v}${unit === "%" ? "%" : ""}` } },
+          x: { grid: { display: false }, ticks: { font: { family: "Geist Mono", size: 11 }, color: "#6e7076", callback: (v) => (v % 3 === 0 ? `${String(v).padStart(2, "0")}h` : "") }, border: { color: "#34353a" } },
+          y: { grid: { color: "#1f2024" }, border: { display: false }, ticks: { font: { family: "Geist Mono", size: 11 }, color: "#6e7076", callback: (v) => `${v > 0 ? "+" : ""}${v}${unit === "%" ? "%" : ""}` } },
         },
       },
       plugins: [bandPlugin],
@@ -320,7 +321,7 @@
       list.innerHTML = items.map((s, i) => `<li role="option" id="opt-${i}" data-id="${s.id}" aria-selected="${i === idx}">${esc(s.name)} ${pill(s.status)}</li>`).join("") || `<li aria-disabled="true">No station matches</li>`;
       list.hidden = false; box.setAttribute("aria-expanded", "true");
     };
-    const pick = (id) => { close(); input.value = ""; select(id, { fly: true }); $("#board").scrollIntoView({ behavior: "smooth", block: "start" }); };
+    const pick = (id) => { close(); input.value = ""; select(id, { fly: true }); $("#live").scrollIntoView({ behavior: "smooth", block: "start" }); };
     input.addEventListener("input", () => { idx = -1; show(); });
     input.addEventListener("focus", show);
     input.addEventListener("keydown", (e) => {
@@ -338,7 +339,7 @@
   function caption(k, text) {
     let el = $("#tour");
     if (!el) { el = document.createElement("div"); el.id = "tour"; el.className = "tour"; el.setAttribute("role", "status"); document.body.appendChild(el); }
-    el.innerHTML = `<span class="k">${esc(k)}</span>${text}`;
+    el.innerHTML = `<span class="label">${esc(k)}</span>${text}`;
   }
 
   async function tour() {
@@ -349,7 +350,7 @@
     mark("tour:start");
     caption("Ground Truth", `${n} air-quality monitors across Delhi and NCR, checked every hour.`);
     await wait(3500);
-    $("#board").scrollIntoView({ behavior: "smooth", block: "start" });
+    $("#live").scrollIntoView({ behavior: "smooth", block: "start" });
     await wait(1500);
 
     mark("tour:physics");
