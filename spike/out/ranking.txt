@@ -1,0 +1,126 @@
+
+## oct-nov: Delhi stations ranked by spray score (n=38)
+
+       id                                       name  days  score      t  frac_pos  d_pm10  d_no2  d_co   d_rh
+1    5627               CRRI Mathura Road, New Delhi    53   0.66   8.74      0.92   -0.13   1.36 -0.35    NaN
+2   11607                          Lodhi Road, Delhi    44   0.45   4.89      0.75    0.16   0.64   NaN -24.88
+3    6359            IHBAS, Dilshad Garden,New Delhi    51   0.43   8.69      0.88    0.20   0.47  0.67  -7.39
+4    6356                                Pusa, Delhi    53   0.41   9.20      0.91    0.40   0.97  0.55  -5.98
+5      50                        Punjabi Bagh, Delhi    47   0.35   8.83      0.89   -0.17  -0.10  0.35  -5.98
+6     235                     Anand Vihar, New Delhi    53   0.30   7.06      0.89   -0.17   0.41 -0.13   7.19
+7    5626                             DTU, New Delhi    54   0.28   4.70      0.72   -0.02   0.54 -0.14   2.69
+8   10484                  Sri Aurobindo Marg, Delhi    53   0.25   5.51      0.81    0.20   0.44  0.51 -15.97
+9    6358                     Mandir Marg, New Delhi    51   0.24   3.53      0.75    0.17   0.57  0.01    NaN
+10  10486                              Mundka, Delhi    52   0.18   4.69      0.75   -0.26  -0.28  0.03  -0.18
+11   5634                      Lodhi Road, New Delhi    53   0.14   3.75      0.66    0.17   0.57  0.03    NaN
+12   5622                         NSIT Dwarka, Delhi    53   0.13   2.15      0.64    0.19   0.10  0.59 -11.99
+13   8235                        Jahangirpuri, Delhi    51   0.13   4.51      0.73   -0.04   0.21  0.05   6.42
+14   5613                             ITO, New Delhi    53   0.12   1.68      0.60   -0.25  -0.32  0.06    NaN
+15   5541                 Burari Crossing, New Delhi    53   0.11   1.78      0.66   -0.07   0.46 -0.28    NaN
+16   6934      Dr. Karni Singh Shooting Range, Delhi    55   0.10   1.50      0.64    0.07   0.03  0.41   2.00
+17   8915                            Wazirpur, Delhi    55   0.07   2.26      0.60    0.06   0.14  0.18   5.50
+18   5650                    IGI Airport (T3), Delhi    53   0.02  -0.15      0.53   -0.29  -0.30 -0.98    NaN
+19   6931                     Dwarka-Sector 8, Delhi    50  -0.03  -1.17      0.42   -0.09  -0.26 -0.06  10.33
+20   5630                            Shadipur, Delhi    55  -0.03  -1.65      0.45   -0.03  -0.27  0.02  34.96
+21   5586                            Sirifort, Delhi    53  -0.04  -0.24      0.45    0.03   0.62 -0.46   4.48
+22   8365                         Nehru Nagar, Delhi    51  -0.05  -2.39      0.45   -0.02  -0.48  0.46  18.16
+23   6932                              Alipur, Delhi    54  -0.07  -1.31      0.39   -0.11  -0.34  0.13  -3.62
+24   8239                       Okhla Phase-2, Delhi    49  -0.11  -4.48      0.27    0.00  -0.23  0.05   1.38
+25  10488                           Najafgarh, Delhi    31  -0.14  -2.35      0.29    0.05   0.13 -0.46    NaN
+26   6957            Jawaharlal Nehru Stadium, Delhi    55  -0.14  -4.47      0.25   -0.14  -0.16 -0.40  -5.61
+27     17                           R K Puram, Delhi    50  -0.15  -3.04      0.32    0.00  -0.47  0.10   4.24
+28   5570                       Aya Nagar, New Delhi    54  -0.16  -3.92      0.26   -0.21  -0.70 -0.05    NaN
+29  10485                              Narela, Delhi    53  -0.16  -3.28      0.28    0.01  -0.14 -0.06   5.52
+30   8475                         Sonia Vihar, Delhi    53  -0.18  -5.55      0.21    0.03   0.02 -0.17  -6.75
+31   8917                         Ashok Vihar, Delhi    54  -0.18  -5.11      0.26    0.08  -0.44  0.16 -12.16
+32   6960                          Patparganj, Delhi    54  -0.21  -4.90      0.28    0.01  -0.19 -0.12  -3.50
+33   6929  Major Dhyan Chand National Stadium, Delhi    51  -0.25  -5.85      0.20   -0.08  -0.46 -0.02    NaN
+34   6938                         Vivek Vihar, Delhi    53  -0.27  -8.86      0.09    0.00  -0.40 -0.05   2.40
+35   5610                    North Campus, DU, Delhi    53  -0.28  -4.53      0.25   -0.11  -0.14 -0.66    NaN
+36   8472                              Bawana, Delhi    56  -0.35 -11.44      0.09    0.06  -0.80  0.25  -4.37
+37  10831                              Rohini, Delhi    53  -0.40  -9.82      0.06   -0.10  -0.54 -0.47  -7.71
+38   5404                                Pusa, Delhi    47  -0.65 -11.08      0.06    0.08  -0.64 -0.50    NaN
+
+## oct01-24: Delhi stations ranked by spray score (n=38)
+
+       id                                       name  days  score     t  frac_pos  d_pm10  d_no2  d_co   d_rh
+1   11607                          Lodhi Road, Delhi    16   0.87  6.86      0.94    0.08   0.87   NaN -12.98
+2    5627               CRRI Mathura Road, New Delhi    23   0.87  6.70      0.91   -0.14   2.03 -0.26    NaN
+3    6356                                Pusa, Delhi    21   0.45  5.36      0.90    0.40   0.91  0.70  -7.25
+4     235                     Anand Vihar, New Delhi    23   0.44  7.27      0.96   -0.18   0.64 -0.09   5.38
+5    6359            IHBAS, Dilshad Garden,New Delhi    22   0.41  6.04      0.91    0.07   0.47  0.53  -5.40
+6    5613                             ITO, New Delhi    23   0.31  5.43      0.87   -0.26   0.06  0.09    NaN
+7    5541                 Burari Crossing, New Delhi    22   0.24  5.34      0.86   -0.05   0.50 -0.16    NaN
+8      50                        Punjabi Bagh, Delhi    16   0.22  2.72      0.75   -0.13  -0.11  0.13 -16.59
+9   10486                              Mundka, Delhi    21   0.21  2.80      0.71   -0.29  -0.37  0.08  -4.98
+10   6358                     Mandir Marg, New Delhi    21   0.21  0.63      0.62    0.14   0.70 -0.11    NaN
+11   5626                             DTU, New Delhi    22   0.19  1.72      0.64   -0.03   0.64 -0.32   5.80
+12   5650                    IGI Airport (T3), Delhi    21   0.18  1.08      0.57   -0.29  -0.30   NaN    NaN
+13  10484                  Sri Aurobindo Marg, Delhi    22   0.18  2.28      0.68    0.35   0.34  0.58  -4.99
+14   8915                            Wazirpur, Delhi    22   0.18  1.88      0.64    0.10   0.22  0.25   9.00
+15   5622                         NSIT Dwarka, Delhi    22   0.12  1.01      0.64    0.15   0.11  0.34  -7.70
+16   5630                            Shadipur, Delhi    23   0.07  0.34      0.57   -0.18  -0.14  0.13  40.54
+17   6934      Dr. Karni Singh Shooting Range, Delhi    23   0.04  0.58      0.57    0.14   0.05  0.49   0.84
+18   8235                        Jahangirpuri, Delhi    22   0.02  1.02      0.59   -0.02   0.21  0.02   2.50
+19   5634                      Lodhi Road, New Delhi    22  -0.00  1.17      0.50    0.30   0.70 -0.10    NaN
+20   5570                       Aya Nagar, New Delhi    23  -0.01 -1.20      0.43   -0.40  -0.45 -0.15    NaN
+21  10485                              Narela, Delhi    21  -0.02 -0.65      0.43    0.03  -0.02  0.07   4.88
+22   6931                     Dwarka-Sector 8, Delhi    19  -0.05 -2.04      0.26   -0.02  -0.27 -0.22   9.87
+23   6932                              Alipur, Delhi    22  -0.10 -1.51      0.32   -0.04  -0.29  0.16  -3.69
+24   8475                         Sonia Vihar, Delhi    22  -0.10 -2.14      0.32    0.04   0.09 -0.06  -4.17
+25   6957            Jawaharlal Nehru Stadium, Delhi    23  -0.14 -2.34      0.26   -0.18  -0.03 -0.62  -5.61
+26  10488                           Najafgarh, Delhi    19  -0.21 -2.94      0.21    0.07   0.13 -0.42    NaN
+27   8917                         Ashok Vihar, Delhi    22  -0.24 -2.94      0.27    0.04  -0.49  0.11 -10.83
+28     17                           R K Puram, Delhi    19  -0.25 -2.60      0.21    0.01  -0.50  0.24   3.81
+29   5610                    North Campus, DU, Delhi    22  -0.30 -3.76      0.14   -0.01  -0.12 -0.78    NaN
+30   6938                         Vivek Vihar, Delhi    22  -0.30 -7.48      0.09    0.03  -0.65  0.03   3.06
+31   8239                       Okhla Phase-2, Delhi    21  -0.31 -4.35      0.19   -0.02  -0.26 -0.23   0.62
+32   8472                              Bawana, Delhi    23  -0.32 -5.84      0.13    0.11  -0.68  0.29  -3.88
+33   5586                            Sirifort, Delhi    22  -0.35 -3.05      0.23    0.06   0.63 -0.90   6.40
+34   6960                          Patparganj, Delhi    23  -0.46 -3.92      0.26   -0.07  -0.39 -0.16  -2.62
+35   8365                         Nehru Nagar, Delhi    21  -0.48 -4.04      0.24   -0.04  -0.98  0.49  14.46
+36   5404                                Pusa, Delhi    16  -0.49 -5.49      0.06    0.05  -0.48 -0.75    NaN
+37   6929  Major Dhyan Chand National Stadium, Delhi    22  -0.55 -6.96      0.05   -0.13  -1.36  0.06    NaN
+38  10831                              Rohini, Delhi    21  -0.62 -5.52      0.10   -0.12  -0.75 -0.47  -1.83
+
+## oct25-nov30: Delhi stations ranked by spray score (n=38)
+
+       id                                       name  days  score      t  frac_pos  d_pm10  d_no2  d_co   d_rh
+1    5627               CRRI Mathura Road, New Delhi    30   0.62   5.82      0.93   -0.12   1.25 -0.37    NaN
+2    6359            IHBAS, Dilshad Garden,New Delhi    29   0.43   6.23      0.86    0.25   0.47  0.88  -8.07
+3   11607                          Lodhi Road, Delhi    28   0.37   2.06      0.64    0.21   0.50   NaN -25.97
+4      50                        Punjabi Bagh, Delhi    31   0.37  10.65      0.97   -0.18  -0.10  0.41  -4.90
+5    6356                                Pusa, Delhi    32   0.36   8.07      0.91    0.40   1.02  0.52  -3.60
+6    5626                             DTU, New Delhi    32   0.33   5.20      0.78   -0.02   0.48  0.08  -0.19
+7   10484                  Sri Aurobindo Marg, Delhi    31   0.26   6.20      0.90    0.18   0.47  0.46 -18.31
+8    6358                     Mandir Marg, New Delhi    30   0.26   4.12      0.83    0.20   0.50  0.30    NaN
+9    5586                            Sirifort, Delhi    31   0.24   2.49      0.61    0.00   0.62 -0.23   3.54
+10    235                     Anand Vihar, New Delhi    30   0.22   3.72      0.83   -0.15   0.31 -0.14   7.95
+11   5634                      Lodhi Road, New Delhi    31   0.20   4.48      0.77    0.15   0.53  0.17    NaN
+12  10486                              Mundka, Delhi    31   0.18   3.73      0.77   -0.26  -0.14  0.02   1.54
+13   8235                        Jahangirpuri, Delhi    29   0.16   5.85      0.83   -0.06   0.22  0.08  10.91
+14   6934      Dr. Karni Singh Shooting Range, Delhi    32   0.15   1.44      0.69    0.03   0.02  0.39   5.12
+15   5622                         NSIT Dwarka, Delhi    31   0.13   1.92      0.65    0.25   0.08  0.67 -12.70
+16   8915                            Wazirpur, Delhi    33   0.04   1.37      0.58    0.05   0.08  0.13   3.94
+17   8365                         Nehru Nagar, Delhi    30   0.02   1.79      0.60    0.02  -0.37  0.46  18.24
+18   5541                 Burari Crossing, New Delhi    31   0.01   0.24      0.52   -0.08   0.39 -0.46    NaN
+19   6931                     Dwarka-Sector 8, Delhi    31   0.01   0.66      0.52   -0.09  -0.25  0.05  11.76
+20   5650                    IGI Airport (T3), Delhi    32  -0.00  -1.22      0.50   -0.28  -0.26 -0.98    NaN
+21  10488                           Najafgarh, Delhi    12  -0.03   0.02      0.42   -0.20   0.13 -0.48    NaN
+22   5613                             ITO, New Delhi    30  -0.04  -1.08      0.40   -0.23  -0.72 -0.00    NaN
+23   8239                       Okhla Phase-2, Delhi    28  -0.05  -2.20      0.32    0.02  -0.20  0.17   2.04
+24   6932                              Alipur, Delhi    32  -0.06  -0.51      0.44   -0.13  -0.45  0.13  -3.38
+25   6929  Major Dhyan Chand National Stadium, Delhi    29  -0.14  -2.54      0.31   -0.06  -0.26 -0.10    NaN
+26   8917                         Ashok Vihar, Delhi    32  -0.14  -4.47      0.25    0.10  -0.37  0.17 -12.62
+27     17                           R K Puram, Delhi    31  -0.15  -1.81      0.39   -0.02  -0.44  0.01   5.23
+28   6960                          Patparganj, Delhi    31  -0.17  -3.07      0.29    0.07  -0.14 -0.07  -5.25
+29   5630                            Shadipur, Delhi    32  -0.20  -3.47      0.38    0.02  -0.30 -0.05  33.29
+30   6957            Jawaharlal Nehru Stadium, Delhi    32  -0.22  -3.83      0.25   -0.13  -0.28 -0.33  -5.15
+31   5570                       Aya Nagar, New Delhi    31  -0.23  -5.19      0.13   -0.18  -0.72  0.01    NaN
+32   6938                         Vivek Vihar, Delhi    31  -0.25  -5.82      0.10   -0.01  -0.28 -0.20   2.11
+33   8475                         Sonia Vihar, Delhi    31  -0.25  -5.76      0.13    0.03   0.00 -0.24 -12.92
+34   5610                    North Campus, DU, Delhi    31  -0.27  -3.05      0.32   -0.13  -0.15 -0.59    NaN
+35  10485                              Narela, Delhi    32  -0.28  -3.92      0.19    0.00  -0.17 -0.37   6.15
+36   8472                              Bawana, Delhi    33  -0.37 -10.60      0.06    0.04  -0.86  0.25  -4.38
+37  10831                              Rohini, Delhi    32  -0.37 -10.22      0.03   -0.10  -0.49 -0.48 -11.62
+38   5404                                Pusa, Delhi    31  -0.66  -9.71      0.06    0.09  -0.83 -0.41    NaN
