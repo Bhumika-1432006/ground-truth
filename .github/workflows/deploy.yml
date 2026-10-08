@@ -1,0 +1,60 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write   # needed for OIDC token
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    needs: []   # test.yml runs on push too; both start in parallel, which is fine
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.DEPLOY_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Install SAM CLI
+        run: pip install aws-sam-cli
+
+      - name: Build and deploy stack
+        run: |
+          sam build
+          sam deploy \
+            --stack-name ground-truth \
+            --region us-east-1 \
+            --capabilities CAPABILITY_IAM \
+            --resolve-s3 \
+            --no-confirm-changeset \
+            --no-fail-on-empty-changeset
+
+      - name: Sync site (never touches data/)
+        run: |
+          BUCKET=$(aws cloudformation describe-stacks \
+            --stack-name ground-truth \
+            --query "Stacks[0].Outputs[?OutputKey=='SiteBucketName'].OutputValue" \
+            --output text)
+          aws s3 sync site/ "s3://${BUCKET}/" --delete --exclude "data/*"
+
+      - name: Invalidate CloudFront cache
+        run: |
+          DIST=$(aws cloudformation describe-stacks \
+            --stack-name ground-truth \
+            --query "Stacks[0].Outputs[?OutputKey=='DistributionId'].OutputValue" \
+            --output text)
+          aws cloudfront create-invalidation \
+            --distribution-id "${DIST}" \
+            --paths "/index.html" "/app.js" "/theme.css" "/scene3d.js" "/spray3d.js"
