@@ -268,11 +268,19 @@ def _assemble(keys, now, stations, prepared, result):
             "region": "NCR" if any(w in s["name"] for w in NCR) else "Delhi",
             "status": next(k for k, v in RANK.items() if v == status), "checks": checks, "latest": latest,
             "neighbours_latest": {p: None if v is None else round(v, 2) for p, v in around.items()}})
+        # Last 48 h of PM2.5 for this station and each neighbour, for the evidence chart.
+        recent_keys = keys[-48:]
+        nb_pm25 = {str(nid): [round(v, 2) if v is not None else None for v in prepared[nid][0]["pm25"][-48:]] for nid in nb}
         per_station[s["id"]] = {
             "id": s["id"], "name": s["name"], "neighbours": nb,
             "hour_profile": profile(keys, gap), "hour_profile_7d": profile(keys, gap, RECENT_DAYS * 24),
             "daily": [{k: (round(v, 3) if isinstance(v, float) else v) for k, v in r.items() if not k.startswith("night_")}
-                      for r in rows]}
+                      for r in rows],
+            "recent_48h": {
+                "hours": recent_keys,
+                "pm25": [round(v, 2) if v is not None else None for v in clean["pm25"][-48:]],
+                "neighbours_pm25": nb_pm25,
+            }}
     latest_json = {
         "generated_at": dt.datetime.now(dt.timezone(dt.timedelta(hours=5, minutes=30))).isoformat(timespec="seconds"),
         "data_through": now.strftime("%Y-%m-%dT%H:00:00+05:30"),
