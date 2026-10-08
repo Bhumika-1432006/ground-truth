@@ -1,32 +1,90 @@
-# ground-truth
-Which of Delhi's air-quality numbers can you trust? Every monitor checked against its neighbours, its own history and its own physics. Environmental Hacks 2026, Air track.
+# Ground Truth
 
-## Layout
+**Which of Delhi's air-quality numbers can you trust?** Every monitor in Delhi and the NCR, checked every hour against the monitors around it, its own past and physics, with a plain answer and the evidence behind it.
 
-- `template.yaml`, `Makefile`: SAM stack (S3 + CloudFront + hourly Lambda) and the commands to deploy, seed and run it.
-- `src/ingest.py`: the hourly Lambda: OpenAQ API -> 29-day cache in S3 -> scorer -> site JSON.
-- `src/backfill.py`: hourly history from the public OpenAQ archive (no key needed).
-- `src/scorer.py`: the three checks. Writes `latest.json` and `stations/<id>.json` (the contract is in `docs/STACK.md`).
-- `sample/data/`: real scorer output for 28 days to 4 Oct 2026, for building the site.
-- `tests/`: pytest, including the planted-anomaly tests, on a real-data fixture.
-- `spike/`: the data spike and its results (`spike/RESULTS.md`).
-- `docs/`: plan, stack, tasks, questions, learnings, submission draft.
+Environmental Hacks 2026 · Air track · team thegoodengineers
 
-## Deploy (AWS, us-east-1)
+![Ground Truth: the fog hero, the ten-second explainer and the 3D Delhi](docs/img/demo.gif)
 
-Needs the `groundtruth` profile and the OpenAQ key in SSM (issue #1).
+**Live site:** _CloudFront URL after `make deploy`_ · **Demo video:** _YouTube link on submission_ · **Writeup:** [docs/submission.md](docs/submission.md)
+
+## The problem
+
+A school principal in East Delhi checks the air at 7:30 before deciding whether assembly stays outdoors. The nearest monitor says the air is fine. But is that monitor working? In October 2025, water tankers were filmed near a Delhi monitor. A published number tells you nothing about the station behind it.
+
+## What it does
+
+Every hour, each monitor gets three checks:
+
+| Check | Question | Catches |
+|---|---|---|
+| **Physics** | Can this reading even be real? | Fine dust (PM2.5) reported bigger than all dust (PM10), values out of range, sensors stuck on one number |
+| **Neighbours** | Does it agree with the four monitors around it? | A daytime drift far beyond what normal daytime air mixing explains |
+| **History** | Has it suddenly changed? | The last 7 days against the 3 weeks before, for dust and humidity |
+
+Each monitor then gets one answer: **agrees with neighbours**, **worth a look** or **doesn't add up**. When a monitor is in doubt, the site shows what the four monitors around it read right now, so the person has a number to act on.
+
+The site explains itself in ten seconds with one real monitor, and then lets you explore Delhi in 3D. Each monitor is a mast whose column is as tall as its PM2.5 reading, with smog that thickens where the air is worse.
+
+## What we found
+
+- **Impossible readings are common at a few monitors.** In Oct-Nov 2025, Vikas Sadan (Gurugram) reported more fine dust than total dust in 31% of hours.
+- **The stations in the news don't stand out.** We tested whether the monitors named in the October 2025 reports show a spraying pattern. On a method fixed before looking, Anand Vihar ranked 6th and Jahangirpuri 13th of 38. We say so on the site: a flag means the numbers don't add up, not that anyone cheated.
+
+The full analysis is in [spike/RESULTS.md](spike/RESULTS.md).
+
+## Proof
+
+- **We tried to fool it 30 times. It caught all 30.** In real November 2025 data, we lowered one quiet monitor's daytime PM10 by 40%, one monitor at a time. Every one was flagged, and only 3 other monitors were wrongly flagged across all 30 runs.
+- **22 automated tests** run on every change (`make test`, GitHub Actions). They cover the planted anomaly, physics, the data contract, the wording (no output ever says "fake", "tampered" or "sprayed"), and the hourly ingest against a fake API.
+
+## Built on AWS
+
+```mermaid
+flowchart LR
+  EB[EventBridge<br/>every hour] --> L[Lambda<br/>ingest + three checks]
+  SSM[(Parameter Store<br/>OpenAQ key)] --> L
+  API[OpenAQ API] --> L
+  ARCH[(OpenAQ archive<br/>Open Data on AWS)] -. history .-> S3
+  L <--> S3[(S3<br/>29-day cache + results)]
+  S3 --> CF[CloudFront] --> U[The site]
+```
+
+- **EventBridge** starts the check every hour.
+- **Lambda** (Python 3.11) reads new readings from OpenAQ, with the key in **SSM Parameter Store**, runs the three checks and writes JSON to **S3**.
+- **CloudFront** serves the site and the data from a private bucket.
+- Everything is one **AWS SAM** template ([template.yaml](template.yaml)), in us-east-1 next to the public OpenAQ archive on Open Data on AWS.
+
+## Run it
 
 ```
-make deploy   # sam build + deploy, then upload site/ if it exists
-make seed     # one-off: 28 days of history from the public archive into the cache
-make run      # run the ingest now and print its summary
-make url      # the CloudFront URL
+make setup        # dev tools: pytest, ruff, cfn-lint
+make local        # the site on http://localhost:8000 with real sample data, no AWS needed
+make test lint    # tests and linters
+make deploy       # with the groundtruth AWS profile: stack + site
+make seed && make run   # 28 days of history into the cache, then the first hourly run
 ```
 
-## Run it locally
+Open `http://localhost:8000/?demo=1` for the self-playing tour.
 
-```
-python src/backfill.py hourly.json --end 2026-10-04 --days 29 --cache .cache
-python src/scorer.py hourly.json out
-pip install pytest && pytest -q tests
-```
+## Repo
+
+| Folder | What's in it |
+|---|---|
+| [site/](site/) | The website: landing, explainer, 3D Delhi (three.js), station panel |
+| [src/](src/) | Backfill, scorer and the hourly ingest Lambda (pure Python, no dependencies) |
+| [tests/](tests/) | 22 tests on real data |
+| [spike/](spike/) | The data analysis the checks are built on |
+| [docs/](docs/) | Plan, stack and data contract, tasks, learnings, submission |
+| [sample/](sample/) | Real scorer output to 4 Oct 2026 |
+| [video/](video/) | Demo video script and narration |
+
+## Data and credits
+
+- Air-quality readings: CPCB and DPCC monitors via [OpenAQ](https://openaq.org).
+- Delhi ward and boundary data: [DataMeet](https://github.com/datameet/Municipal_Spatial_Data) (CC BY-SA 2.5 India); our simplified copy in `site/geo/` is shared under the same licence.
+- [three.js](https://threejs.org) and [Chart.js](https://www.chartjs.org) (MIT); Geist and Geist Mono fonts (SIL Open Font License).
+
+## Team
+
+Chirag ([@Chirag6722](https://github.com/Chirag6722)), Abhijeet ([@thegoodengineer](https://github.com/thegoodengineer)), Bhumika ([@Bhumika-1432006](https://github.com/Bhumika-1432006)), Ayush ([@AyushVUpadhye](https://github.com/AyushVUpadhye)).
