@@ -54,6 +54,7 @@
   }
 
   async function boot() {
+    document.querySelectorAll("[data-pill]").forEach((el) => { el.outerHTML = pill(el.dataset.pill); });
     try {
       latest = await getJSON("data/latest.json");
     } catch (e) {
