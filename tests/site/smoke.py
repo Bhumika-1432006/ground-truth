@@ -83,11 +83,10 @@ def _panel(page, url):
 @pytest.mark.parametrize("webgl", [True, False], ids=["webgl", "no-webgl"])
 def test_smoke(base_url, playwright, webgl):
     args = [] if webgl else ["--disable-webgl"]
-    browser = playwright.chromium.launch(
-        executable_path=os.environ.get("CHROMIUM_PATH", "/opt/pw-browsers/chromium"),
-        args=["--no-sandbox", "--disable-dev-shm-usage",
-              "--enable-unsafe-swiftshader"] + args,
-    )
+    launch_kwargs = {"args": ["--no-sandbox", "--disable-dev-shm-usage", "--enable-unsafe-swiftshader"] + args}
+    if os.environ.get("CHROMIUM_PATH"):
+        launch_kwargs["executable_path"] = os.environ["CHROMIUM_PATH"]
+    browser = playwright.chromium.launch(**launch_kwargs)
     ctx = browser.new_context()
     page = ctx.new_page()
     try:
@@ -99,10 +98,10 @@ def test_smoke(base_url, playwright, webgl):
 
 
 def test_tour(base_url, playwright):
-    browser = playwright.chromium.launch(
-        executable_path=os.environ.get("CHROMIUM_PATH", "/opt/pw-browsers/chromium"),
-        args=["--no-sandbox", "--disable-dev-shm-usage", "--enable-unsafe-swiftshader"],
-    )
+    launch_kwargs = {"args": ["--no-sandbox", "--disable-dev-shm-usage", "--enable-unsafe-swiftshader"]}
+    if os.environ.get("CHROMIUM_PATH"):
+        launch_kwargs["executable_path"] = os.environ["CHROMIUM_PATH"]
+    browser = playwright.chromium.launch(**launch_kwargs)
     ctx = browser.new_context()
     page = ctx.new_page()
     try:
