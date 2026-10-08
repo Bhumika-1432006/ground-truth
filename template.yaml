@@ -7,6 +7,10 @@ Parameters:
     Type: String
     Default: /ground-truth/openaq-key
     Description: SSM SecureString holding the OpenAQ API key (created by hand, see issue 1).
+  AlertEmail:
+    Type: String
+    Default: team@example.com
+    Description: Email address for CloudWatch alarm notifications.
 
 Resources:
   SiteBucket:
@@ -85,6 +89,7 @@ Resources:
           SITE_BUCKET: !Ref SiteBucket
           OPENAQ_KEY_PARAM: !Ref OpenAQKeyParam
           MAX_CALLS: "300"
+          AWS_STACK_NAME: !Ref AWS::StackName
       Events:
         Hourly:
           Type: Schedule
@@ -101,12 +106,67 @@ Resources:
             - Effect: Allow
               Action: s3:ListBucket  # so a missing key reads as NoSuchKey, not AccessDenied
               Resource: !GetAtt SiteBucket.Arn
+            - Effect: Allow
+              Action: cloudwatch:PutMetricData
+              Resource: "*"
 
   IngestLogs:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${IngestFunction}"
       RetentionInDays: 14
+
+  # ── alerting ───────────────────────────────────────────────────────────────
+  AlarmTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${AWS::StackName}-alarms"
+      Subscription:
+        - Protocol: email
+          Endpoint: !Ref AlertEmail
+
+  IngestErrorAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-ingest-errors"
+      AlarmDescription: Ingest Lambda raised an error in 2 consecutive hours
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref IngestFunction
+      Statistic: Sum
+      Period: 3600
+      EvaluationPeriods: 2
+      DatapointsToAlarm: 2
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions:
+        - !Ref AlarmTopic
+      OKActions:
+        - !Ref AlarmTopic
+
+  StaleDataAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-stale-data"
+      AlarmDescription: data/latest.json has not been refreshed for more than 3 hours
+      Namespace: GroundTruth
+      MetricName: DataAgeHours
+      Dimensions:
+        - Name: StackName
+          Value: !Ref AWS::StackName
+      Statistic: Maximum
+      Period: 3600
+      EvaluationPeriods: 1
+      Threshold: 3
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: breaching
+      AlarmActions:
+        - !Ref AlarmTopic
+      OKActions:
+        - !Ref AlarmTopic
 
 Outputs:
   SiteUrl:

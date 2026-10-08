@@ -160,11 +160,33 @@ class S3Store:
                            ContentType="application/json", **extra)
 
 
+def _publish_data_age(log: dict, stack_name: str) -> None:
+    """Emit DataAgeHours metric so the stale-data CloudWatch alarm can fire."""
+    import boto3
+    data_through = log.get("data_through")
+    if not data_through:
+        return
+    now = dt.datetime.now(UTC)
+    through = dt.datetime.fromisoformat(data_through).replace(tzinfo=UTC)
+    age_hours = (now - through).total_seconds() / 3600
+    boto3.client("cloudwatch").put_metric_data(
+        Namespace="GroundTruth",
+        MetricData=[{
+            "MetricName": "DataAgeHours",
+            "Dimensions": [{"Name": "StackName", "Value": stack_name}],
+            "Value": age_hours,
+            "Unit": "None",
+        }],
+    )
+
+
 def handler(event, context):
     import boto3  # in the Lambda runtime; not needed for tests
     key = boto3.client("ssm").get_parameter(Name=os.environ.get("OPENAQ_KEY_PARAM", "/ground-truth/openaq-key"),
                                             WithDecryption=True)["Parameter"]["Value"]
     store = S3Store(os.environ["SITE_BUCKET"], boto3.client("s3"))
     log = run(store, OpenAQ(key), backfill.stations(), dt.datetime.now(UTC), int(os.environ.get("MAX_CALLS", "300")))
+    stack_name = os.environ.get("AWS_STACK_NAME", "ground-truth")
+    _publish_data_age(log, stack_name)
     print(json.dumps(log))
     return log
