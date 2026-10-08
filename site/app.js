@@ -3,10 +3,10 @@
   "use strict";
 
   const STATUS = {
-    ok: { label: "Agrees with neighbours", short: "Agrees" },
-    watch: { label: "Worth a look", short: "Worth a look" },
-    flag: { label: "Doesn't add up", short: "Doesn't add up" },
-    nodata: { label: "Not enough data", short: "No data" },
+    ok: { label: "Agrees with neighbours", short: "Agrees", todo: "Sensor looks reliable: use this reading." },
+    watch: { label: "Worth a look", short: "Worth a look", todo: "Uncertain: compare it with the 4 monitors around it before acting." },
+    flag: { label: "Doesn't add up", short: "Doesn't add up", todo: "Flagged: use the median of its 4 neighbours instead." },
+    nodata: { label: "Not enough data", short: "No data", todo: "Can't be checked right now: use the median of its 4 neighbours." },
   };
   const CHECK_LABEL = { ok: "Passes", watch: "Worth a look", flag: "Doesn't add up", nodata: "No data" };
   const ORDER = ["flag", "watch", "ok", "nodata"];
@@ -21,6 +21,9 @@
     no2: { name: "NO2 (traffic gas)", unit: "%" },
     relativehumidity: { name: "Humidity", unit: "pts" },
   };
+  // which measure each check looks at, so a card can say exactly what raised it
+  const CHECK_PARAM = { physics: () => "PM2.5 and PM10", neighbours: () => "PM10", history: (c) => (c.param === "relativehumidity" ? "humidity" : "PM10") };
+  const MICRO = "A real local source, such as a busy junction, road dust, construction or burning within a few hundred metres, can also push one monitor away from neighbours 5–12 km off. Here, the monitor may be right.";
   const PM25_STANDARD = 60; // India NAAQS, 24-hour mean, µg/m³
 
   const $ = (s, el = document) => el.querySelector(s);
@@ -42,7 +45,18 @@
     return `<svg class="ico" width="${s}" height="${s}" viewBox="0 0 14 14" aria-hidden="true">${body}</svg>`;
   }
   const pill = (status, label = STATUS[status].label) => `<span class="pill ${status}">${icon(status, 12)}${label}</span>`;
-  const short = (name) => name.replace(/,\s*(New )?Delhi$/, "").replace(/\s+-\s+.*$/, "");
+  const todo = (status) => `<p class="todo ${status}">${STATUS[status].todo}</p>`;
+  function raisedBy(s) {
+    if (s.status === "ok" || s.status === "nodata") return "";
+    const hits = CHECKS.filter(([k]) => s.checks[k].status === s.status).map(([k, name]) => `${name} (${CHECK_PARAM[k](s.checks[k])})`);
+    return hits.length ? `<p class="raised">Raised by: <b>${hits.join(" + ")}</b></p>` : "";
+  }
+  const short = (name) => name.replace(/,\s*(New )?Delhi$/, "").replace(/\s+-\s+(DPCC|CPCB|IMD|HSPCB|UPPCB)\b.*$/, "");
+  // in a list grouped by city, the city is already the heading; twins with one name get their OpenAQ id
+  const listName = (s, all) => {
+    const n = short(s.name).replace(/,\s*(Noida|Ghaziabad|Gurugram|Faridabad|Bahadurgarh|Manesar)(,\s*UP)?$/, "");
+    return all.filter((o) => short(o.name) === short(s.name)).length > 1 ? `${n} · ${s.id}` : n;
+  };
 
   let latest = null, byId = new Map(), chart = null, selected = null, param = "pm10";
 
@@ -68,6 +82,7 @@
     }
     latest.stations.forEach((s) => byId.set(s.id, s));
     renderFresh();
+    setInterval(renderPulse, 30000);
     renderStats();
     renderMap();
     renderLegend();
@@ -77,6 +92,7 @@
     renderMeanings();
     renderCheckExamples();
     renderTicks();
+    renderRoster();
     setupSearch();
     window.addEventListener("hashchange", fromHash);
     $("#close-cta")?.addEventListener("click", (e) => { e.preventDefault(); window.scrollTo({ top: 0, behavior: "smooth" }); setTimeout(() => $("#search").focus(), 500); });
@@ -91,16 +107,32 @@
     if (byId.has(id)) select(id, { fly: true });
   }
 
+  const ago = (min) => (min < 1 ? "just now" : min < 60 ? `${Math.round(min)} min ago` : min < 48 * 60 ? `${Math.round(min / 60)} h ago` : `${Math.round(min / 1440)} days ago`);
+
   function renderFresh() {
     const el = $("#fresh");
     const t = new Date(latest.data_through);
     const hours = (Date.now() - t.getTime()) / 36e5;
     const when = t.toLocaleString("en-IN", { timeZone: "Asia/Kolkata", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hour12: false });
-    el.textContent = `Data through ${when} IST`;
+    el.textContent = `Readings through ${when} IST`;
     el.title = `Generated ${latest.generated_at}`;
     el.classList.toggle("stale", hours > 3);
     const live = $("#chrome-live");
-    if (live) live.textContent = `Data through ${when}`;
+    if (live) live.textContent = `Readings through ${when}`;
+    renderPulse();
+  }
+
+  // is the hourly check itself running? from the time of its last run, ticking every 30 s
+  function renderPulse() {
+    const el = $("#pulse");
+    const run = new Date(latest.generated_at);
+    if (!el || isNaN(run)) return;
+    const min = (Date.now() - run.getTime()) / 6e4;
+    const live = min <= 75;
+    el.className = `pulse ${live ? "on" : "off"}`;
+    el.textContent = live ? `Live · checked ${ago(min)} · next check in ${Math.max(1, Math.round(60 - (min % 60)))} min` : `Paused · last check ${ago(min)}`;
+    el.title = live ? "The check runs every hour on AWS" : "The hourly check hasn't run recently; the answers below are from its last run";
+    el.hidden = false;
   }
 
   function renderStats() {
@@ -136,6 +168,7 @@
       <span class="label">Right now, for example</span>
       <h3>${esc(short(s.name))}</h3>
       ${pill(s.status)}
+      ${todo(s.status)}
       <div class="nums">This station <b>${fmt(s.latest?.pm25)}</b> µg/m³ PM2.5 · the 4 stations around it <b>${fmt(s.neighbours_latest?.pm25)}</b></div>
       <button class="btn dark" type="button" data-open="${s.id}">See why <span class="arr">→</span></button>`;
     el.querySelector("[data-open]").addEventListener("click", () => openStation(s.id, spotFor(s)));
@@ -172,19 +205,18 @@
       ok: ["Its numbers add up against physics, its neighbours and its own past.", "Use its reading as it is."],
       watch: ["Something about it is unusual, but not clearly wrong.", "Compare its reading with what its neighbours read before acting on it."],
       flag: ["Its numbers don't add up: impossible values, or far out of line with its neighbours or its past.", "Use what the four monitors around it read instead."],
+      nodata: ["We can't check it right now: too few recent readings from it or its neighbours to run the checks.", "Use what the four monitors around it read."],
     };
-    $("#meanings").innerHTML = ["ok", "watch", "flag"].map((st) => {
+    $("#meanings").innerHTML = ["ok", "watch", "flag", "nodata"].map((st) => {
       const list = (groups[st] || []).slice().sort((a, b) => a.name.localeCompare(b.name));
       const shown = list.slice(0, st === "ok" ? 4 : 6);
       return `<article class="meaning">
         <div class="head">${icon(st, 30)}<h3>${STATUS[st].label}</h3></div>
-        <dl><dt>What it means</dt><dd>${copy[st][0]}</dd><dt>What to do</dt><dd>${copy[st][1]}</dd></dl>
+        <dl><dt>What it means</dt><dd>${copy[st][0]}</dd><dt>What to do</dt><dd>${copy[st][1]}</dd>${st === "nodata" ? `<dt>Why it happens</dt><dd>Almost always, the monitor stopped sending readings to the public feed (CPCB, through OpenAQ): a power cut, a network outage or maintenance. It isn't a fault in our checks. The <i>Live · checked … ago</i> pill at the top shows that our own hourly run is working.</dd>` : ""}</dl>
         <div class="now-count"><b>${list.length}</b><span>monitor${list.length === 1 ? "" : "s"} right now${list.length > shown.length ? `, for example:` : list.length ? ":" : ""}</span></div>
         <div class="chips">${shown.map((s) => `<button type="button" data-open="${s.id}">${esc(short(s.name))}</button>`).join("")}</div>
       </article>`;
     }).join("");
-    const nd = groups.nodata?.length || 0;
-    $("#nodata-note").innerHTML = nd ? `${icon("nodata", 12)} ${nd} more monitor${nd === 1 ? " has" : "s have"} too little recent data to check.` : "";
     $("#meanings").querySelectorAll("[data-open]").forEach((b) => b.addEventListener("click", () => { const s = byId.get(Number(b.dataset.open)); openStation(s.id, spotFor(s)); }));
   }
 
@@ -351,7 +383,7 @@
     let gapTxt = "";
     if (mine != null && around != null && Math.max(mine, around) >= 15) {
       const r = (mine + 1) / (around + 1);
-      if (r > 1.5 || r < 1 / 1.5) gapTxt = ` Right now, though, it reads <b>${r > 1 ? "well above" : "well below"}</b> the stations around it (${fmt(mine)} against ${fmt(around)} µg/m³).`;
+      if (r > 1.5 || r < 1 / 1.5) gapTxt = ` Right now, though, it reads <b>${r > 1 ? "well above" : "well below"}</b> the stations around it (${fmt(mine)} against ${fmt(around)} µg/m³).${r > 1 ? ` <span class="micro">${MICRO}</span>` : ""}`;
     }
     return `<div class="advice ${s.status}">${text}${gapTxt}</div>`;
   }
@@ -360,13 +392,16 @@
     const nb = doc?.neighbours?.map((i) => byId.get(i)).filter(Boolean) || [];
     const checks = CHECKS.map(([k, name, q]) => {
       const c = s.checks[k];
-      return `<li class="check" data-check="${k}"><div><h3>${name}</h3><div class="q">${q}</div></div>${pill(c.status, CHECK_LABEL[c.status])}<p>${esc(c.detail)}</p></li>`;
+      const note = k === "neighbours" && (c.status === "watch" || c.status === "flag") ? `<p class="micro">Note: ${MICRO}</p>` : "";
+      return `<li class="check" data-check="${k}"><div><h3>${name} <span class="param">${CHECK_PARAM[k](c)}</span></h3><div class="q">${q}</div></div>${pill(c.status, CHECK_LABEL[c.status])}<p>${esc(c.detail)}</p>${note}</li>`;
     }).join("");
     const opts = Object.entries(PARAMS).map(([k, p]) => `<option value="${k}"${k === param ? " selected" : ""}>${p.name}</option>`).join("");
     return `
       <span class="label">${s.region === "NCR" ? "NCR" : "Delhi"} · OpenAQ location ${s.id}</span>
       <h2>${esc(short(s.name))}</h2>
       <div class="meta">${pill(s.status)}</div>
+      ${todo(s.status)}
+      ${raisedBy(s)}
       <div class="now">
         <div><small>This station, PM2.5 now</small><b>${fmt(s.latest?.pm25)}<small> µg/m³</small></b></div>
         <div><small>4 nearest stations, PM2.5 now</small><b>${fmt(s.neighbours_latest?.pm25)}<small> µg/m³</small></b></div>
@@ -459,6 +494,49 @@
     document.querySelectorAll(".check").forEach((el) => el.classList.toggle("spot", el.dataset.check === k));
   }
 
+  // ---------- every monitor, by area ----------
+  const CENTRE = [28.62, 77.215]; // around Connaught Place
+  function area(s) {
+    for (const [w, a] of [["Noida", "Noida"], ["Ghaziabad", "Ghaziabad"], ["Gurugram", "Gurugram and Manesar"], ["Manesar", "Gurugram and Manesar"], ["Faridabad", "Faridabad"], ["Bahadurgarh", "Bahadurgarh"]]) if (s.name.includes(w)) return a;
+    const dy = s.lat - CENTRE[0], dx = (s.lon - CENTRE[1]) * Math.cos(CENTRE[0] * Math.PI / 180);
+    if (Math.hypot(dx, dy) * 111 < 5) return "Central Delhi";
+    return Math.abs(dy) > Math.abs(dx) ? (dy > 0 ? "North Delhi" : "South Delhi") : (dx > 0 ? "East Delhi" : "West Delhi");
+  }
+  const AREAS = ["Central Delhi", "North Delhi", "South Delhi", "East Delhi", "West Delhi", "Noida", "Ghaziabad", "Gurugram and Manesar", "Faridabad", "Bahadurgarh"];
+  let rosterFilter = "all";
+
+  function renderRoster() {
+    latest.stations.forEach((s) => { s._area = area(s); });
+    const count = (st) => latest.stations.filter((s) => s.status === st).length;
+    $("#filters").innerHTML = [["all", "All", latest.stations.length], ...["flag", "watch", "ok", "nodata"].map((st) => [st, STATUS[st].short, count(st)])]
+      .map(([f, label, n]) => `<button type="button" data-f="${f}" aria-pressed="${f === rosterFilter}">${f === "all" ? "" : icon(f, 12)}${label} <span class="count">${n}</span></button>`).join("");
+    $("#filters").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-f]");
+      if (!b) return;
+      rosterFilter = b.dataset.f;
+      $("#filters").querySelectorAll("[data-f]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+      drawRoster();
+    });
+    $("#roster-q").addEventListener("input", drawRoster);
+    $("#areas").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-open]");
+      if (!b) return;
+      select(Number(b.dataset.open), { fly: true });
+      $(".window").scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+    drawRoster();
+  }
+
+  function drawRoster() {
+    const q = $("#roster-q").value.trim().toLowerCase();
+    const shown = latest.stations.filter((s) => (rosterFilter === "all" || s.status === rosterFilter) && (!q || s.name.toLowerCase().includes(q) || s._area.toLowerCase().includes(q)));
+    const html = AREAS.map((a) => {
+      const list = shown.filter((s) => s._area === a).sort((x, y) => ORDER.indexOf(x.status) - ORDER.indexOf(y.status) || x.name.localeCompare(y.name));
+      return list.length ? `<section class="area"><h4>${a} <span class="count">${list.length}</span></h4><div class="chips">${list.map((s) => `<button type="button" data-open="${s.id}" aria-label="${esc(s.name)}: ${STATUS[s.status].label}">${icon(s.status, 12)}${esc(listName(s, latest.stations))}</button>`).join("")}</div></section>` : "";
+    }).join("");
+    $("#areas").innerHTML = html || `<p class="footnote">No monitor matches. Try another name or area, or show all.</p>`;
+  }
+
   // ---------- search ----------
   function setupSearch() {
     const input = $("#search"), list = $("#search-list"), box = input.closest(".search");
@@ -470,8 +548,8 @@
       list.innerHTML = items.map((s, i) => `<li role="option" id="opt-${i}" data-id="${s.id}" aria-selected="${i === idx}">${esc(s.name)} ${pill(s.status)}</li>`).join("") || `<li aria-disabled="true">No station matches</li>`;
       list.hidden = false; box.setAttribute("aria-expanded", "true");
     };
-    const pick = (id) => { close(); input.value = ""; select(id, { fly: true }); $("#live").scrollIntoView({ behavior: "smooth", block: "start" }); };
-    input.addEventListener("input", () => { idx = -1; show(); });
+    const pick = (id) => { close(); input.value = ""; $("#roster-q").value = ""; drawRoster(); select(id, { fly: true }); $("#live").scrollIntoView({ behavior: "smooth", block: "start" }); };
+    input.addEventListener("input", () => { idx = -1; show(); $("#roster-q").value = input.value; drawRoster(); });
     input.addEventListener("focus", show);
     input.addEventListener("keydown", (e) => {
       if (e.key === "ArrowDown") { idx = Math.min(idx + 1, items.length - 1); show(); e.preventDefault(); }
