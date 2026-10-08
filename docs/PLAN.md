@@ -18,8 +18,10 @@ Delhi publishes readings from about 40 monitors, and people make decisions on th
 | Check | Question | Rule (v1) |
 |---|---|---|
 | **Physics** | Can this reading be real? | PM2.5 > 1.05 × PM10, values out of range, or 3+ identical hours in a row. Flag if >5% of the last 7 days' hours fail; watch if >1%. |
-| **Neighbours** | Does it agree with stations around it? | Log gap against the median of its nearest 4 within 12 km, by hour of day over 28 days. Flag if the daytime (11-17) gap moves against the night gap by more than the city's 90th percentile. |
-| **History** | Has it changed against itself? | The last 7 days' daytime-minus-night gap against the previous 21 days, for PM10 and humidity. Flag if it shifts by more than 3 robust SDs. |
+| **Neighbours** | Does it agree with stations around it? | Log gap against the median of its nearest 4 within 12 km (co-located twins skipped). Last 7 days' daytime (11-17) minus night (22-06) PM10 contrast, corrected for daytime mixing with a city-wide Theil-Sen line against the night gap, as a robust z across stations. Watch at \|z\| ≥ 2, flag at ≥ 3. |
+| **History** | Has it changed against itself? | The same contrast for PM10 and humidity: the last 7 days against the 21 before, in robust SDs of the station's own day-to-day spread. Watch at 2, flag at 3. |
+
+Scoring runs twice. Stations flagged on neighbours or history in the first pass are left out of everyone else's reference in the second, so one misbehaving station doesn't drag its neighbours with it.
 
 The headline status is the worst of the three. Copy says "doesn't agree with its neighbours" and never "fake" or "tampered".
 

@@ -20,3 +20,10 @@ What we already know, so nobody re-learns it this weekend.
 - **Gas contrasts are noisy** (NO2 day-night gap ranges −0.8 to +1.4 across stations, against PM10's −0.3 to +0.4). Don't subtract them in a score; show them side by side.
 - **Physics checks fire on real data:** PM2.5 > PM10 in 1,044 of 66,831 station-hours. Vikas Sadan, Gurugram: 31% of hours, plus 720 zero or negative hourly values. These are our clearest, least arguable flags.
 - **Honest headline:** with this method, neither station named in the news stands out. Say so on the site and in the video. It makes everything else more credible.
+
+## From building the scorer (8 Oct)
+
+- **The planted-anomaly experiment** (52 stations, Nov 2025): a 40% daytime PM10 cut over 7 days is caught at 30 of 30 quiet stations. It newly flags 3 other stations across all 30 plantings, and moves about 1.6 others per planting (mostly between ok and watch).
+- Two things made that work. A **Theil-Sen** city line, because a least-squares line let the planted station tilt everyone's z-scores. And a **second pass** that leaves first-pass suspects out of their neighbours' references.
+- **Edge stations** (Narela, Najafgarh, the NCR fringe) have 2-3 neighbours, so their references are less stable. Expect more ok/watch flicker there.
+- **On 4 Oct 2026 data** Jahangirpuri is flagged on history: daytime humidity against its neighbours is +5.2 pts above its previous 3 weeks. It's the same signature as after the Oct 2025 reports. It is still one humidity sensor, so present it as "worth a look", not as evidence of spraying.
