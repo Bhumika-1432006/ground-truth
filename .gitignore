@@ -1,0 +1,8 @@
+.cache/
+__pycache__/
+.pytest_cache/
+site/data/
+video/vo/
+video/renders/
+video/build/
+video/*.mp4

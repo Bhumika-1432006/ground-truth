@@ -1,0 +1,331 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ground Truth: which Delhi air-quality numbers can you trust?</title>
+<meta name="description" content="Every air-quality monitor in Delhi and NCR, checked every hour against its neighbours, its own history and physics. Open data, open code.">
+<meta name="theme-color" content="#f3f3f4">
+<meta property="og:title" content="Ground Truth">
+<meta property="og:description" content="The air is already being measured. That's not the same as true.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%2308090a'/%3E%3Cpath d='M9 21h14M16 21V9' stroke='%23f5f5f2' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='9' r='3' fill='%2369d39a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="theme.css">
+</head>
+<body id="top">
+
+<!-- the fog scene, drawn once and used in the hero and the closing -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="grain" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="2" seed="7" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.15" result="a"/>
+      <feComposite in="SourceGraphic" in2="a" operator="in"/>
+    </filter>
+    <filter id="haze" x="-10%" y="-50%" width="120%" height="200%"><feGaussianBlur stdDeviation="16"/></filter>
+    <filter id="soft"><feGaussianBlur stdDeviation="1.2"/></filter>
+    <linearGradient id="hill1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#55575b"/><stop offset="1" stop-color="#1c1d1f"/></linearGradient>
+    <linearGradient id="hill2" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3b3c3f"/><stop offset="1" stop-color="#121314"/></linearGradient>
+    <linearGradient id="fogband" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f4f4f5" stop-opacity="0"/><stop offset=".5" stop-color="#f4f4f5" stop-opacity=".95"/><stop offset="1" stop-color="#f4f4f5" stop-opacity="0"/></linearGradient>
+    <symbol id="scene-art" viewBox="0 0 1440 520" preserveAspectRatio="xMidYMax slice">
+      <g fill="#c4c5c8" filter="url(#soft)">
+        <path d="M0 432h40v-26h22v-14h30v40h26v-22h34v22h20v-34h28v34h36v-18h40v18h30v-28h24v28h18v-40h26v40H0z"/>
+        <path d="M520 432v-20h24v-16h34v36h30v-24h26v24h40v-30h22v30h20v-14h38v14h26v-36h28v36h34v-20h24v20h40v-26h30v26h22v-40h26v40h36v-16h40v16h28v-28h34v28h32v-22h28v22h30v-34h30v34h36v-18h40v18h24v-26h22v26h28v-12H520z"/>
+      </g>
+      <!-- Qutub Minar -->
+      <g fill="#a9aaae">
+        <path d="M402 434 409 250h16l7 184z"/>
+        <path d="M406 258h22v4h-22zM404 312h26v4h-26zM403 366h28v4h-28zM402 410h30v4h-30z" fill="#9b9ca0"/>
+        <path d="M411 250h12l-2-14h-8z"/><circle cx="417" cy="233" r="4"/>
+      </g>
+      <!-- Lotus Temple -->
+      <g fill="#b3b4b8">
+        <path d="M640 434c6-26 22-44 38-52-10 16-14 34-12 52z"/>
+        <path d="M768 434c-6-26-22-44-38-52 10 16 14 34 12 52z"/>
+        <path d="M664 434c2-34 18-58 40-72 22 14 38 38 40 72z" fill="#a6a7ab"/>
+        <path d="M684 434c0-28 8-50 20-64 12 14 20 36 20 64z" fill="#9c9da1"/>
+        <path d="M626 434h156v6H626z"/>
+      </g>
+      <!-- India Gate -->
+      <g fill="#a3a4a8">
+        <path d="M932 436v-98h96v98h-30v-46a18 18 0 0 0-36 0v46z"/>
+        <path d="M940 322h80v16h-80zM948 312h64v10h-64z"/>
+        <path d="M966 312a14 10 0 0 1 28 0z"/>
+      </g>
+      <rect class="drift" x="-120" y="372" width="1680" height="96" fill="url(#fogband)" filter="url(#haze)"/>
+      <path d="M0 520V452c160-30 320-6 470 4 170 12 300-28 470-26 190 2 330 24 500 10V520z" fill="url(#hill1)"/>
+      <path d="M0 520V452c160-30 320-6 470 4 170 12 300-28 470-26 190 2 330 24 500 10V520z" fill="#8a8b8f" filter="url(#grain)" opacity=".55"/>
+      <!-- the monitor: a mast with a sensor box -->
+      <g transform="translate(1198 0)">
+        <path d="M30 448V318" stroke="#2b2c2f" stroke-width="3"/>
+        <path d="M30 448 14 470M30 448l16 22" stroke="#2b2c2f" stroke-width="2.2"/>
+        <rect x="12" y="320" width="36" height="28" rx="3" fill="#3a3b3e"/>
+        <path d="M16 330h28M16 336h28M16 342h28" stroke="#55575b" stroke-width="1.6"/>
+        <path d="M34 314l26-12" stroke="#2b2c2f" stroke-width="2"/><path d="M50 296l22-8 4 10-22 8z" fill="#3a3b3e"/>
+        <circle cx="30" cy="312" r="3.2" fill="#69d39a"/><circle cx="30" cy="312" r="7" fill="#69d39a" opacity=".22"/>
+      </g>
+      <path d="M0 520V488c140-22 260-30 380-20 120 10 190 34 330 32V520z" fill="url(#hill2)"/>
+      <path d="M760 520c120-34 280-62 420-74 110-10 190-4 260 4V520z" fill="url(#hill2)"/>
+      <path d="M0 520V488c140-22 260-30 380-20 120 10 190 34 330 32V520zM760 520c120-34 280-62 420-74 110-10 190-4 260 4V520z" fill="#6b6c70" filter="url(#grain)" opacity=".5"/>
+      <g fill="#1d1e20">
+        <circle cx="70" cy="478" r="22"/><circle cx="98" cy="470" r="28"/><circle cx="128" cy="480" r="20"/><circle cx="52" cy="486" r="16"/>
+        <circle cx="1352" cy="436" r="18"/><circle cx="1376" cy="428" r="24"/><circle cx="1402" cy="438" r="17"/>
+      </g>
+      <rect class="drift slow" x="-160" y="452" width="1760" height="70" fill="url(#fogband)" filter="url(#haze)" opacity=".85"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="wordmark" href="#top" aria-label="Ground Truth home">ground<b>truth</b></a>
+    <nav aria-label="Sections">
+      <a href="#story">How it works</a>
+      <a href="#live">Live map</a>
+      <a href="#proof">Proof</a>
+      <a href="#faq">FAQ</a>
+      <span class="fresh" id="fresh">Loading data…</span>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="wrap copy">
+      <span class="label rise" id="hero-label">Delhi + NCR · every monitor · checked hourly</span>
+      <h1 id="hero-title" class="rise"><span class="dim">The air is already being measured.</span>That's not the same as true.</h1>
+      <p class="lede rise">Ground Truth checks every air-quality monitor in Delhi against the stations around it, its own past and physics, and tells you in plain words whether its number adds up.</p>
+      <div class="cta rise">
+        <div class="search" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-owns="search-list">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.25" stroke="currentColor" stroke-width="1.5"/><path d="m11 11 3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <label class="sr-only" for="search">Find your station</label>
+          <input id="search" type="search" placeholder="Find your station, e.g. Anand Vihar" autocomplete="off" aria-autocomplete="list" aria-controls="search-list">
+          <ul id="search-list" role="listbox" hidden></ul>
+        </div>
+        <a class="btn outline" href="?demo=1" id="tour-btn">Watch the tour <span class="arr">↗</span></a>
+      </div>
+    </div>
+    <div class="scene" aria-hidden="true"><svg><use href="#scene-art"/></svg></div>
+  </section>
+
+  <aside class="example" id="example" hidden aria-label="An example station right now"></aside>
+
+  <section class="proofbar" aria-label="Today's numbers">
+    <div class="wrap">
+      <span class="label">Checked every hour, from the live data</span>
+      <div class="stats" id="stats" aria-live="polite">
+        <div class="stat"><b class="skel">52</b><span>stations checked</span></div>
+        <div class="stat"><b class="skel">0</b><span>don't add up</span></div>
+        <div class="stat"><b class="skel">0</b><span>worth a look</span></div>
+        <div class="stat"><b>30/30</b><span>planted anomalies caught in tests</span></div>
+      </div>
+    </div>
+  </section>
+
+    <section class="sec story" id="story" aria-labelledby="story-title">
+      <div class="wrap">
+        <div class="sec-head center">
+          <span class="label">How it works, in ten seconds</span>
+          <h2 class="h2" id="story-title"><span class="dim">A reading on its own can't tell you if it's right.</span>The monitors around it can.</h2>
+        </div>
+        <ol class="steps" id="steps">
+          <li class="step">
+            <div class="step-art" id="step1-art"></div>
+            <span class="step-n">1</span>
+            <h3 id="step1-title">A monitor reports a number</h3>
+            <p id="step1-text">Every hour, each of Delhi's monitors publishes its PM2.5 reading.</p>
+          </li>
+          <li class="step">
+            <div class="step-art" id="step2-art"></div>
+            <span class="step-n">2</span>
+            <h3 id="step2-title">We ask its four neighbours</h3>
+            <p id="step2-text">We compare it with the four nearest monitors, within 12 km.</p>
+          </li>
+          <li class="step">
+            <div class="step-art" id="step3-art"></div>
+            <span class="step-n">3</span>
+            <h3 id="step3-title">You get a plain answer</h3>
+            <p id="step3-text">If the numbers don't add up, we say so, and show you which number to use instead.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="sec alt" id="meaning" aria-labelledby="meaning-title">
+      <div class="wrap">
+        <div class="sec-head">
+          <div>
+            <span class="label">Reading the answers</span>
+            <h2 class="h2" id="meaning-title"><span class="dim">Every monitor gets one of three answers.</span>Here's what to do with each.</h2>
+          </div>
+        </div>
+        <div class="meanings" id="meanings"></div>
+        <p class="footnote" id="nodata-note"></p>
+      </div>
+    </section>
+
+    <section class="sec" id="live" aria-labelledby="live-title">
+      <div class="wrap">
+        <div class="sec-head">
+          <div>
+            <span class="label">Live map</span>
+            <h2 class="h2" id="live-title"><span class="dim">Find the monitor you rely on.</span>See its answer, and why.</h2>
+          </div>
+          <p class="sub">Each mast is a monitor, and its column is as tall as its PM2.5 reading. The smog is thicker where the air is worse. Click a monitor for its answer, or click the city to explore it in 3D.</p>
+        </div>
+        <div class="window">
+          <div class="chrome"><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div><span class="url">groundtruth / delhi / live</span><span class="live" id="chrome-live">Live</span><button class="exit3d" id="exit3d" type="button" hidden>Exit 3D <span aria-hidden="true">✕</span></button></div>
+          <div class="app">
+            <div class="mapcol">
+              <div id="map" role="region" aria-label="3D map of monitoring stations"></div>
+              <button class="enter3d" id="enter3d" type="button">Explore Delhi in 3D <span aria-hidden="true">⤢</span></button>
+              <div class="legend" id="legend"></div>
+            </div>
+            <div class="panel" id="panel" aria-live="polite">
+              <div class="empty"><h2>Loading the monitors…</h2></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec alt" id="how" aria-labelledby="how-title">
+      <div class="wrap">
+        <div class="sec-head">
+          <div>
+            <span class="label">The three checks</span>
+            <h2 class="h2" id="how-title"><span class="dim">Three questions, asked every hour.</span>Each one, with a real example.</h2>
+          </div>
+        </div>
+        <div class="checks3">
+          <article class="c3">
+            <div class="c3-art" id="ex-physics"></div>
+            <span class="label">Physics</span>
+            <h3>Can this reading even be real?</h3>
+            <p>Fine dust (PM2.5) is part of all dust (PM10), so it can never be bigger. A monitor that says otherwise, or repeats the same number for hours, is broken.</p>
+            <p class="c3-case" id="ex-physics-case"></p>
+          </article>
+          <article class="c3">
+            <div class="c3-art" id="ex-neighbours"></div>
+            <span class="label">Neighbours</span>
+            <h3>Does it agree with the monitors around it?</h3>
+            <p>Hour by hour, against the four nearest. Daytime air mixes, so some difference is normal; we only flag a monitor that drifts far more than the rest of the city.</p>
+            <p class="c3-case" id="ex-neighbours-case"></p>
+          </article>
+          <article class="c3">
+            <div class="c3-art" id="ex-history"></div>
+            <span class="label">History</span>
+            <h3>Has it suddenly changed?</h3>
+            <p>We compare the last 7 days with the 3 weeks before. A sudden jump against its own past means something changed at that monitor.</p>
+            <p class="c3-case" id="ex-history-case"></p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="who" aria-labelledby="who-title">
+      <div class="wrap">
+        <div class="sec-head">
+          <div>
+            <span class="label">Who it's for</span>
+            <h2 class="h2" id="who-title"><span class="dim">For anyone who acts on the number.</span>Before they act on it.</h2>
+          </div>
+        </div>
+        <div class="people">
+          <article class="person">
+            <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M10 54V28l22-14 22 14v26" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M26 54V40h12v14M32 14V6l8 3-8 3" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>
+            <h3>A school principal</h3>
+            <p>Deciding at 7:30 whether assembly and PE stay outdoors. If the nearest monitor doesn't add up, they use what the monitors around the school read.</p>
+          </article>
+          <article class="person">
+            <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="24" cy="14" r="6" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="44" cy="24" r="4.5" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M24 22v16l-6 16M24 38l6 16M24 28l-8 8M24 28l10 6M44 30v12l-4 12M44 42l4 12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <h3>A parent</h3>
+            <p>Planning a walk or a park visit with a child, or deciding when to run the air purifier. One glance tells them whether today's number can be trusted.</p>
+          </article>
+          <article class="person">
+            <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="10" y="12" width="44" height="40" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M18 22h28M18 30h28M18 38h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+            <h3>A reporter or official</h3>
+            <p>Checking whether a monitor's readings changed, and when, before writing about it. Every answer links to the hour-by-hour evidence.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec alt" id="proof" aria-labelledby="proof-title">
+      <div class="wrap proof2">
+        <div>
+          <span class="label">Does it actually work?</span>
+          <h2 class="h2" id="proof-title"><span class="dim">We tried to fool it 30 times.</span>It caught all 30.</h2>
+          <p class="sub">We took real data from November 2025 and, one quiet monitor at a time, secretly lowered its daytime dust by 40%. Ground Truth flagged every one of them, and wrongly flagged another monitor only 3 times across all 30 runs.</p>
+          <p class="sub small">This test, and 21 others, run automatically every time the code changes. <a href="https://github.com/thegoodengineers/ground-truth">See the tests</a></p>
+        </div>
+        <div class="ticks" id="ticks" role="img" aria-label="30 out of 30 planted problems caught"></div>
+      </div>
+    </section>
+
+    <section class="sec" id="aws" aria-labelledby="aws-title">
+      <div class="wrap">
+        <div class="sec-head">
+          <div>
+            <span class="label">Built on AWS</span>
+            <h2 class="h2" id="aws-title"><span class="dim">Nobody presses a button.</span>It checks itself every hour.</h2>
+          </div>
+          <p class="sub">The whole system is one AWS SAM template, deployed in us-east-1 next to the public OpenAQ archive it reads from.</p>
+        </div>
+        <ol class="pipe" aria-label="How data flows">
+          <li><span class="pipe-k">Every hour</span><b>Amazon EventBridge</b><span>starts the check</span></li>
+          <li><span class="pipe-k">Fetch + check</span><b>AWS Lambda</b><span>reads new readings from OpenAQ, with the key from Parameter Store, and runs the three checks</span></li>
+          <li><span class="pipe-k">Store</span><b>Amazon S3</b><span>keeps 29 days of history and the results</span></li>
+          <li><span class="pipe-k">Serve</span><b>Amazon CloudFront</b><span>delivers this page and the data</span></li>
+          <li><span class="pipe-k">Read</span><b>You</b><span>see every monitor's answer</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="sec alt" id="faq" aria-labelledby="faq-title">
+      <div class="wrap">
+        <div class="sec-head"><div><span class="label">Questions</span><h2 class="h2" id="faq-title"><span class="dim">Still wondering?</span>Plain answers.</h2></div></div>
+        <div class="faq">
+          <details><summary>Does a red answer mean someone tampered with the monitor?</summary><p>No. It means the monitor's numbers don't add up against physics, its neighbours or its own past. Sensors drift, break and get moved. We tested whether the monitors named in the news in October 2025 show a spraying pattern, and with our method they don't stand out.</p></details>
+          <details><summary>Which number should I use if my monitor is flagged?</summary><p>Use what the four nearest monitors read right now. The panel shows it next to your monitor's own reading. It is the middle value of real monitors, not an official reading.</p></details>
+          <details><summary>How fresh is the data?</summary><p>The check runs every hour on new readings from the CPCB and DPCC monitors, via OpenAQ. The time of the latest reading is at the top of the page.</p></details>
+          <details><summary>Why does a polluted area look cleaner in the afternoon?</summary><p>By day the air mixes higher, so pollution near busy roads spreads out and a hotspot reads closer to its neighbours. We correct for this so it isn't mistaken for a problem.</p></details>
+          <details><summary>Is the code open?</summary><p>Yes. Everything, including the data analysis behind these checks, is on GitHub.</p></details>
+        </div>
+      </div>
+    </section>
+
+  <section class="closing" aria-labelledby="close-title">
+    <div class="wrap">
+      <h2 id="close-title"><span class="dim">Before you act on a number,</span>check that it adds up.</h2>
+      <p>Find the station you rely on. It takes ten seconds.</p>
+      <a class="btn dark" href="#top" id="close-cta">Find your station <span class="arr">↑</span></a>
+    </div>
+    <div class="scene" aria-hidden="true"><svg><use href="#scene-art"/></svg></div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <p class="big">groundtruth</p>
+      <p>Which of Delhi's air-quality numbers can you trust? Environmental Hacks 2026, Air track.</p>
+    </div>
+    <div>
+      <h4>Data</h4>
+      <ul><li>CPCB / DPCC monitors via <a href="https://openaq.org">OpenAQ</a></li><li>3D scene drawn with <a href="https://threejs.org">three.js</a></li><li>Wards: <a href="https://github.com/datameet/Municipal_Spatial_Data">DataMeet</a> (CC BY-SA 2.5 IN)</li></ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul><li><a href="https://github.com/thegoodengineers/ground-truth">GitHub</a></li><li><a href="?demo=1">60-second tour</a></li><li><a href="#story">How it works</a></li></ul>
+    </div>
+  </div>
+</footer>
+
+<script src="vendor/chart.umd.js"></script>
+<script src="app.js"></script>
+<script type="module" src="scene3d.js"></script>
+</body>
+</html>
