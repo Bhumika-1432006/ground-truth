@@ -125,7 +125,6 @@
     </div>
   </section>
 
-  <div class="night">
     <section class="sec" id="live" aria-labelledby="live-title">
       <div class="wrap">
         <div class="sec-head">
@@ -144,7 +143,7 @@
             </div>
             <div class="panel" id="panel" aria-live="polite">
               <div class="empty">
-                <svg width="46" height="46" viewBox="0 0 46 46" fill="none" aria-hidden="true"><circle cx="23" cy="23" r="21" stroke="#34353a" stroke-width="1.5" stroke-dasharray="3 4"/><circle cx="23" cy="23" r="5" fill="#f5f5f2"/></svg>
+                <svg width="46" height="46" viewBox="0 0 46 46" fill="none" aria-hidden="true"><circle cx="23" cy="23" r="21" stroke="#d6d6d9" stroke-width="1.5" stroke-dasharray="3 4"/><circle cx="23" cy="23" r="5" fill="#08090a"/></svg>
                 <h2>Pick a station</h2>
                 <p>Click a marker on the map, or search for the station nearest you.</p>
               </div>
@@ -154,7 +153,7 @@
       </div>
     </section>
 
-    <section class="sec" id="how" aria-labelledby="how-title">
+    <section class="sec alt" id="how" aria-labelledby="how-title">
       <div class="wrap">
         <div class="sec-head">
           <div>
@@ -164,19 +163,19 @@
         </div>
         <div class="trio">
           <article>
-            <div class="glyph" aria-hidden="true"><svg width="150" height="60" viewBox="0 0 150 60"><rect x="30" y="8" width="34" height="44" rx="4" fill="#26272b"/><rect x="30" y="30" width="34" height="22" rx="4" fill="#6e7076"/><rect x="86" y="8" width="34" height="44" rx="4" fill="#26272b"/><rect x="86" y="2" width="34" height="50" rx="4" fill="none" stroke="#f0564f" stroke-width="1.6" stroke-dasharray="3 3"/></svg></div>
+            <div class="glyph" aria-hidden="true"><svg width="150" height="60" viewBox="0 0 150 60"><rect x="30" y="8" width="34" height="44" rx="4" fill="#e6e6e8"/><rect x="30" y="30" width="34" height="22" rx="4" fill="#b4b5ba"/><rect x="86" y="8" width="34" height="44" rx="4" fill="#e6e6e8"/><rect x="86" y="2" width="34" height="50" rx="4" fill="none" stroke="#d03b3b" stroke-width="1.6" stroke-dasharray="3 3"/></svg></div>
             <span class="num">01 · Physics</span>
             <h3>Can this reading be real?</h3>
             <p>Fine dust (PM2.5) is part of all dust (PM10), so it can never be larger. We also catch values out of range and sensors stuck on one number for hours.</p>
           </article>
           <article>
-            <div class="glyph" aria-hidden="true"><svg width="150" height="60" viewBox="0 0 150 60"><g stroke="#34353a" stroke-width="1.2"><path d="M75 30 40 12M75 30l35-18M75 30 40 48M75 30l35 18"/></g><circle cx="40" cy="12" r="5" fill="#6e7076"/><circle cx="110" cy="12" r="5" fill="#6e7076"/><circle cx="40" cy="48" r="5" fill="#6e7076"/><circle cx="110" cy="48" r="5" fill="#6e7076"/><circle cx="75" cy="30" r="7" fill="#f5f5f2"/></svg></div>
+            <div class="glyph" aria-hidden="true"><svg width="150" height="60" viewBox="0 0 150 60"><g stroke="#d6d6d9" stroke-width="1.2"><path d="M75 30 40 12M75 30l35-18M75 30 40 48M75 30l35 18"/></g><circle cx="40" cy="12" r="5" fill="#b4b5ba"/><circle cx="110" cy="12" r="5" fill="#b4b5ba"/><circle cx="40" cy="48" r="5" fill="#b4b5ba"/><circle cx="110" cy="48" r="5" fill="#b4b5ba"/><circle cx="75" cy="30" r="7" fill="#08090a"/></svg></div>
             <span class="num">02 · Neighbours</span>
             <h3>Does it agree with the stations around it?</h3>
             <p>Hour by hour, against the four nearest stations within 12 km. A station whose daytime readings fall away from its neighbours, more than daytime mixing explains, stands out.</p>
           </article>
           <article>
-            <div class="glyph" aria-hidden="true"><svg width="150" height="60" viewBox="0 0 150 60"><path d="M10 34c10-4 18 4 28 0s18-6 28-2 16 2 24 0" stroke="#6e7076" stroke-width="2" fill="none"/><path d="M90 32c8-2 10-18 20-20s16 4 30 2" stroke="#f5f5f2" stroke-width="2" fill="none"/><path d="M90 6v48" stroke="#34353a" stroke-dasharray="3 3"/></svg></div>
+            <div class="glyph" aria-hidden="true"><svg width="150" height="60" viewBox="0 0 150 60"><path d="M10 34c10-4 18 4 28 0s18-6 28-2 16 2 24 0" stroke="#b4b5ba" stroke-width="2" fill="none"/><path d="M90 32c8-2 10-18 20-20s16 4 30 2" stroke="#08090a" stroke-width="2" fill="none"/><path d="M90 6v48" stroke="#d6d6d9" stroke-dasharray="3 3"/></svg></div>
             <span class="num">03 · History</span>
             <h3>Has it suddenly changed?</h3>
             <p>The last 7 days against the 3 weeks before, for dust and humidity. A sudden shift against its own past is worth a look.</p>
@@ -216,7 +215,7 @@ tests/test_ingest.py::test_rate_limit_is_retried <span class="ok">PASSED</span>
       </div>
     </section>
 
-    <section class="sec" id="aws" aria-labelledby="aws-title">
+    <section class="sec alt" id="aws" aria-labelledby="aws-title">
       <div class="wrap">
         <div class="sec-head">
           <div>
@@ -251,13 +250,12 @@ tests/test_ingest.py::test_rate_limit_is_retried <span class="ok">PASSED</span>
         </div>
       </div>
     </section>
-  </div>
 
   <section class="closing" aria-labelledby="close-title">
     <div class="wrap">
       <h2 id="close-title"><span class="dim">Before you act on a number,</span>check that it adds up.</h2>
       <p>Find the station you rely on. It takes ten seconds.</p>
-      <a class="btn light" href="#top" id="close-cta">Find your station <span class="arr">↑</span></a>
+      <a class="btn dark" href="#top" id="close-cta">Find your station <span class="arr">↑</span></a>
     </div>
     <div class="scene" aria-hidden="true"><svg><use href="#scene-art"/></svg></div>
   </section>
