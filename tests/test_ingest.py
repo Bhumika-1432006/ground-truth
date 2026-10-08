@@ -128,3 +128,46 @@ def test_score_hour_ignores_a_single_early_clock():
     hourly = {"1": {"pm10": {"2026-10-08T12": 1, "2026-10-08T20": 1}}, "2": {"pm10": {"2026-10-08T12": 1}},
               "3": {"pm25": {"2026-10-08T12": 1}}, "4": {}}
     assert ingest.score_hour(hourly, 4) == "2026-10-08T12"
+
+
+# ---------- hysteresis ----------
+
+def _make_latest(statuses):
+    return {"stations": [{"id": str(i), "status": s} for i, s in enumerate(statuses)]}
+
+
+def test_hysteresis_worsening_is_immediate():
+    hist = {}
+    latest = _make_latest(["ok"])
+    ingest.apply_hysteresis(latest, hist, "2026-10-08T10")
+    assert latest["stations"][0]["status"] == "ok"
+    latest2 = _make_latest(["flag"])
+    ingest.apply_hysteresis(latest2, hist, "2026-10-08T11")
+    assert latest2["stations"][0]["status"] == "flag"
+
+
+def test_hysteresis_improving_needs_three_hours():
+    hist = {}
+    for hour in range(3):
+        latest = _make_latest(["flag"])
+        ingest.apply_hysteresis(latest, hist, f"2026-10-08T{hour:02d}")
+    # now drop to ok
+    for hour in range(3, 5):
+        latest = _make_latest(["ok"])
+        ingest.apply_hysteresis(latest, hist, f"2026-10-08T{hour:02d}")
+        assert latest["stations"][0]["status"] == "flag", f"should still be flag at hour {hour}"
+    # third ok in a row — should drop
+    latest = _make_latest(["ok"])
+    ingest.apply_hysteresis(latest, hist, "2026-10-08T05")
+    assert latest["stations"][0]["status"] == "ok"
+
+
+def test_hysteresis_status_since_tracks_change():
+    hist = {}
+    latest = _make_latest(["ok"])
+    ingest.apply_hysteresis(latest, hist, "2026-10-08T10")
+    assert latest["stations"][0]["status_since"] == "2026-10-08T10"
+    # worsen immediately
+    latest2 = _make_latest(["flag"])
+    ingest.apply_hysteresis(latest2, hist, "2026-10-08T11")
+    assert latest2["stations"][0]["status_since"] == "2026-10-08T11"

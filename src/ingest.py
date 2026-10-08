@@ -16,9 +16,54 @@ import backfill, scorer
 
 API = "https://api.openaq.org/v3"
 RAW_KEY, SENSORS_KEY = "data/raw/hourly.json", "data/raw/sensors.json"
+STATUS_HIST_KEY = "data/raw/status_history.json"
 KEEP_DAYS, LOOKBACK_HOURS, REFETCH_HOURS = 29, 6 * 24, 2
+HYSTERESIS_DOWN = 3   # hours in a row at a lower level before status drops
+HISTORY_DAYS = 7
 IST = backfill.IST
 UTC = dt.timezone.utc
+RANK = scorer.RANK
+
+
+def apply_hysteresis(latest_json, status_hist, now_key):
+    """Mutate station statuses in latest_json to apply hysteresis (slow to improve, fast to worsen).
+    Update status_hist in-place: {sid: {"pending": status, "count": n, "current": status, "since": key}}.
+    Returns the updated status_hist.
+    """
+    cutoff = (dt.datetime.strptime(now_key, "%Y-%m-%dT%H") - dt.timedelta(days=HISTORY_DAYS)).strftime("%Y-%m-%dT%H")
+    for s in latest_json["stations"]:
+        sid = str(s["id"])
+        raw = s["status"]
+        h = status_hist.setdefault(sid, {"current": raw, "pending": raw, "count": 1, "since": now_key,
+                                         "history": []})
+        current = h["current"]
+        if RANK[raw] > RANK[current]:
+            # worsening: move up immediately
+            h["current"] = raw
+            h["since"] = now_key
+            h["pending"] = raw
+            h["count"] = 1
+        elif RANK[raw] < RANK[current]:
+            # improving: need HYSTERESIS_DOWN hours in a row
+            if h.get("pending") == raw:
+                h["count"] += 1
+            else:
+                h["pending"] = raw
+                h["count"] = 1
+            if h["count"] >= HYSTERESIS_DOWN:
+                h["current"] = raw
+                h["since"] = now_key
+        else:
+            h["pending"] = raw
+            h["count"] = 1
+        # record hourly history strip (last HISTORY_DAYS days)
+        hist = h.setdefault("history", [])
+        hist.append({"hour": now_key, "status": h["current"]})
+        h["history"] = [e for e in hist if e["hour"] >= cutoff]
+        # write back smoothed status and since
+        s["status"] = h["current"]
+        s["status_since"] = h["since"]
+    return status_hist
 
 
 def ist_key(t):
@@ -134,6 +179,9 @@ def run(store, api, stations, now, max_calls=300):
         log["scored"] = False
         return log
     latest, per_station = scorer.score(hourly, stations, dt.datetime.strptime(last, "%Y-%m-%dT%H"))
+    status_hist = store.get_json(STATUS_HIST_KEY) or {}
+    apply_hysteresis(latest, status_hist, last)
+    store.put_json(STATUS_HIST_KEY, status_hist)
     for sid, doc in per_station.items():
         store.put_json(f"data/stations/{sid}.json", doc, max_age=300)
     store.put_json("data/latest.json", latest, max_age=300)
