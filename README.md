@@ -79,6 +79,22 @@ Open `http://localhost:8000/?demo=1` for the self-playing tour.
 | [sample/](sample/) | Real scorer output to 4 Oct 2026 |
 | [video/](video/) | Demo video script and narration |
 
+## Cost
+
+All resources are tagged `project=ground-truth` for Cost Explorer. A $5/month AWS Budgets alarm fires at 80% ($4) to the team email.
+
+Estimated monthly cost at 720 Lambda runs/month (hourly, arm64, 512 MB, ~30 s average):
+
+| Service | Estimate |
+|---|---|
+| Lambda (720 runs × ~30 s × 512 MB) | ~$0.02 |
+| S3 (PUT/GET, ~1 GB stored) | ~$0.03 |
+| CloudFront (10 GB transfer, PriceClass_200) | ~$0.85 |
+| SSM Parameter Store (1 SecureString, API calls) | ~$0.01 |
+| **Total** | **< $1 / month** |
+
+_Measured cost will be updated here after 48 hours live._
+
 ## Data and credits
 
 - Air-quality readings: CPCB and DPCC monitors via [OpenAQ](https://openaq.org).

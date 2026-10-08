@@ -7,8 +7,36 @@ Parameters:
     Type: String
     Default: /ground-truth/openaq-key
     Description: SSM SecureString holding the OpenAQ API key (created by hand, see issue 1).
+  AlertEmail:
+    Type: String
+    Default: team@example.com
+    Description: Email address for budget and CloudWatch alarm notifications.
 
 Resources:
+  # ── cost tracking ──────────────────────────────────────────────────────────
+  MonthlyBudget:
+    Type: AWS::Budgets::Budget
+    Properties:
+      Budget:
+        BudgetName: !Sub "${AWS::StackName}-monthly"
+        BudgetType: COST
+        TimeUnit: MONTHLY
+        BudgetLimit:
+          Amount: 5
+          Unit: USD
+        CostFilters:
+          TagKeyValue:
+            - "user:project$ground-truth"
+      NotificationsWithSubscribers:
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 80
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref AlertEmail
+
   SiteBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -21,6 +49,9 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
+      Tags:
+        - Key: project
+          Value: ground-truth
 
   SiteOAC:
     Type: AWS::CloudFront::OriginAccessControl
@@ -80,6 +111,8 @@ Resources:
       MemorySize: 512
       Timeout: 600  # ~260 paced API calls at under 60/min
       ReservedConcurrentExecutions: 1  # never two runs writing the cache at once
+      Tags:
+        project: ground-truth
       Environment:
         Variables:
           SITE_BUCKET: !Ref SiteBucket
