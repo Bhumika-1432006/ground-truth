@@ -15,7 +15,6 @@ import os
 import pathlib
 import re
 import threading
-import time
 
 import pytest
 
@@ -82,7 +81,7 @@ def _panel(page, url):
 
 
 @pytest.mark.parametrize("webgl", [True, False], ids=["webgl", "no-webgl"])
-def test_smoke(base_url, playwright):
+def test_smoke(base_url, playwright, webgl):
     args = [] if webgl else ["--disable-webgl"]
     browser = playwright.chromium.launch(
         executable_path=os.environ.get("CHROMIUM_PATH", "/opt/pw-browsers/chromium"),
