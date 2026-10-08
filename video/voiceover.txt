@@ -1,0 +1,9 @@
+Last October, water tankers were filmed near one of Delhi's air-quality monitors.
+Delhi makes real decisions on these numbers: school closures, construction bans. But a published number tells you nothing about the station behind it.
+So we built Ground Truth. Every monitor, checked three ways, every hour.
+Physics: can this reading even be real? Neighbours: does it agree with the stations around it? History: has it suddenly changed against itself?
+Some stations fail the first test. In October and November 2025, Vikas Sadan in Gurugram reported more fine dust than total dust in 31 percent of hours. That's physically impossible.
+Here's Anand Vihar against its four nearest neighbours, hour by hour. At night it reads about 29 percent higher. Between 11 and 5, only 9 percent. That looks like spraying. But every polluted hotspot does this, because daytime air mixes. And the dip didn't change after the video. So we don't flag it, and we say so.
+How do we know the checks work? We plant a fake 40 percent daytime drop in real data. It gets caught at every station we tried, and doesn't spill onto its neighbours.
+On AWS, EventBridge triggers a Lambda every hour. It pulls new readings from OpenAQ, runs the checks, and writes JSON to S3, served through CloudFront.
+A flag doesn't accuse anyone. It says: these numbers don't add up, look closer. Ground Truth. Open data, open code.
