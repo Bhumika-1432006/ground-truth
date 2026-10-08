@@ -1,0 +1,303 @@
+/* Ground Truth 3D: Delhi in fog, drawn from our own data. No tile server.
+   The ground is Delhi's wards; landmarks and monitor masts stand at their real coordinates;
+   each monitor carries a column as tall as its PM2.5 reading and a cloud of smog; dust drifts
+   through the air, thicker on dirtier days. app.js talks to this module through window.GT3D. */
+import * as THREE from "./vendor/three/three.module.min.js";
+import { OrbitControls } from "./vendor/three/OrbitControls.js";
+
+const LAT0 = 28.63, LON0 = 77.16;
+const KX = (111320 * Math.cos((LAT0 * Math.PI) / 180)) / 100; // scene units per degree (1 unit = 100 m)
+const KZ = 110540 / 100;
+const xy = (lon, lat) => [(lon - LON0) * KX, (lat - LAT0) * KZ]; // shape plane: x east, y north
+const FOG = 0xe8e7e4;
+const STATE = { ok: 0x0ca30c, watch: 0xf2a60c, flag: 0xd03b3b, nodata: 0xa3a4a9 };
+const TINT = { ok: 0xa9cdb0, watch: 0xefc867, flag: 0xe2867f, nodata: 0xcfd0d3 };
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function radial(inner, outer) {
+  const c = document.createElement("canvas"); c.width = c.height = 128;
+  const g = c.getContext("2d").createRadialGradient(64, 64, 0, 64, 64, 64);
+  g.addColorStop(0, inner); g.addColorStop(1, outer);
+  const ctx = c.getContext("2d"); ctx.fillStyle = g; ctx.fillRect(0, 0, 128, 128);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+
+function shapeFromRing(ring) {
+  const s = new THREE.Shape();
+  ring.forEach(([lon, lat], i) => { const [x, y] = xy(lon, lat); i ? s.lineTo(x, y) : s.moveTo(x, y); });
+  return s;
+}
+
+function pointInRing(x, y, ring) {
+  let inside = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i], [xj, yj] = ring[j];
+    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) inside = !inside;
+  }
+  return inside;
+}
+
+async function getJSON(u) { const r = await fetch(u); if (!r.ok) throw new Error(u); return r.json(); }
+
+function buildGround(scene, wards, boundary) {
+  // the land beyond Delhi, fading into fog
+  const plane = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), new THREE.MeshLambertMaterial({ color: 0xe2e1de }));
+  plane.rotation.x = -Math.PI / 2; plane.receiveShadow = true; scene.add(plane);
+
+  const mats = [0xf4f4f2, 0xf1f1ee, 0xeeeeeb].map((c) => new THREE.MeshLambertMaterial({ color: c }));
+  const edge = [];
+  wards.features.forEach((f, i) => {
+    const polys = f.geometry.type === "Polygon" ? [f.geometry.coordinates] : f.geometry.coordinates;
+    for (const p of polys) {
+      const shape = shapeFromRing(p[0]);
+      p.slice(1).forEach((hole) => shape.holes.push(shapeFromRing(hole)));
+      const g = new THREE.ExtrudeGeometry(shape, { depth: 0.5, bevelEnabled: false });
+      g.rotateX(-Math.PI / 2);
+      const m = new THREE.Mesh(g, mats[i % 3]); m.receiveShadow = true; scene.add(m);
+      p[0].forEach(([lon, lat], k) => {
+        if (!k) return;
+        const [x0, y0] = xy(...p[0][k - 1]), [x1, y1] = xy(lon, lat);
+        edge.push(x0, 0.52, -y0, x1, 0.52, -y1);
+      });
+    }
+  });
+  const eg = new THREE.BufferGeometry(); eg.setAttribute("position", new THREE.Float32BufferAttribute(edge, 3));
+  scene.add(new THREE.LineSegments(eg, new THREE.LineBasicMaterial({ color: 0xd2d2ce })));
+
+  const ring = boundary.features[0].geometry.type === "Polygon" ? boundary.features[0].geometry.coordinates[0] : boundary.features[0].geometry.coordinates[0][0];
+  const pts = ring.map(([lon, lat]) => { const [x, y] = xy(lon, lat); return new THREE.Vector3(x, 0.7, -y); });
+  const bl = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineDashedMaterial({ color: 0x8f9095, dashSize: 3, gapSize: 2 }));
+  bl.computeLineDistances(); scene.add(bl);
+  return ring.map(([lon, lat]) => xy(lon, lat));
+}
+
+function buildCity(scene, ringXY) {
+  // low city blocks and a few trees, scattered inside Delhi's boundary (deterministic, so every visit looks the same)
+  const xs = ringXY.map((p) => p[0]), ys = ringXY.map((p) => p[1]);
+  const [x0, x1, y0, y1] = [Math.min(...xs), Math.max(...xs), Math.min(...ys), Math.max(...ys)];
+  let seed = 11;
+  const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  const inside = () => { for (let g = 0; g < 50; g++) { const x = x0 + rnd() * (x1 - x0), y = y0 + rnd() * (y1 - y0); if (pointInRing(x, y, ringXY)) return [x, y]; } return null; };
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
+
+  const blocks = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0xffffff }), 4200);
+  const col = new THREE.Color();
+  let n = 0;
+  for (let i = 0; i < 4200; i++) {
+    const p = inside(); if (!p) continue;
+    const w = 0.35 + rnd() * 0.75, d = 0.35 + rnd() * 0.75, h = 0.25 + Math.pow(rnd(), 3) * 3.2;
+    q.setFromAxisAngle(up, rnd() * Math.PI);
+    m.compose(new THREE.Vector3(p[0], 0.5 + h / 2, -p[1]), q, new THREE.Vector3(w, h, d));
+    blocks.setMatrixAt(n, m); blocks.setColorAt(n, col.setHSL(0.1, 0.04, 0.86 + rnd() * 0.08)); n++;
+  }
+  blocks.count = n; blocks.castShadow = true; blocks.receiveShadow = true; scene.add(blocks);
+
+  const trees = new THREE.InstancedMesh(new THREE.ConeGeometry(0.45, 1.6, 7), new THREE.MeshLambertMaterial({ color: 0xa7b0a3 }), 900);
+  n = 0;
+  for (let i = 0; i < 900; i++) {
+    const p = inside(); if (!p) continue;
+    const s = 0.6 + rnd() * 0.7;
+    m.compose(new THREE.Vector3(p[0], 0.5 + 0.8 * s, -p[1]), q.identity(), new THREE.Vector3(s, s, s));
+    trees.setMatrixAt(n++, m);
+  }
+  trees.count = n; trees.castShadow = true; scene.add(trees);
+}
+
+function buildLandmarks(scene) {
+  const stone = new THREE.MeshStandardMaterial({ color: 0xb4b5b8, roughness: 0.95 });
+  const put = (obj, lon, lat) => { const [x, y] = xy(lon, lat); obj.position.set(x, 0.5, -y); obj.scale.setScalar(2); obj.traverse((o) => { o.castShadow = o.receiveShadow = true; }); scene.add(obj); };
+
+  // Qutub Minar: five tapering storeys with balconies
+  const qm = new THREE.Group(); let y = 0, r = 1.5;
+  for (let i = 0; i < 5; i++) {
+    const h = [7, 5.5, 4.5, 3.2, 3][i], r2 = r * 0.82;
+    const seg = new THREE.Mesh(new THREE.CylinderGeometry(r2, r, h, 20), stone); seg.position.y = y + h / 2; qm.add(seg);
+    const bal = new THREE.Mesh(new THREE.CylinderGeometry(r2 + 0.35, r2 + 0.35, 0.3, 20), stone); bal.position.y = y + h; qm.add(bal);
+    y += h; r = r2;
+  }
+  const cap = new THREE.Mesh(new THREE.SphereGeometry(r * 0.9, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), stone); cap.position.y = y + 0.15; qm.add(cap);
+  put(qm, 77.1855, 28.5245);
+
+  // India Gate: two piers, the arch lintel, attic and a shallow dome
+  const ig = new THREE.Group();
+  [-4.2, 4.2].forEach((x) => { const p = new THREE.Mesh(new THREE.BoxGeometry(3.4, 11, 3.2), stone); p.position.set(x, 5.5, 0); ig.add(p); });
+  const lin = new THREE.Mesh(new THREE.BoxGeometry(11.8, 2.6, 3.2), stone); lin.position.y = 12.3; ig.add(lin);
+  const att = new THREE.Mesh(new THREE.BoxGeometry(9.5, 1.6, 2.6), stone); att.position.y = 14.4; ig.add(att);
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(1.6, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), stone); dome.position.y = 15.2; ig.add(dome);
+  put(ig, 77.2295, 28.6129);
+
+  // Lotus Temple: two rings of petals around a base
+  const lt = new THREE.Group();
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(7.5, 8, 0.8, 27), stone); base.position.y = 0.4; lt.add(base);
+  const petal = new THREE.SphereGeometry(2.6, 16, 12, 0, Math.PI, 0, Math.PI);
+  [[9, 4.8, 0.95, 0.5], [9, 2.4, 1.25, 0]].forEach(([n, rad, sy, off]) => {
+    for (let i = 0; i < n; i++) {
+      const a = ((i + off) / n) * Math.PI * 2, p = new THREE.Mesh(petal, stone);
+      p.scale.set(0.7, sy * 2.2, 0.55); p.position.set(Math.cos(a) * rad, 2.8 * sy, Math.sin(a) * rad);
+      p.rotation.y = -a; p.rotation.z = -0.28 * (rad > 3 ? 1 : 0.4); lt.add(p);
+    }
+  });
+  put(lt, 77.2588, 28.5535);
+}
+
+function buildMonitors(scene, stations, reading) {
+  const steel = new THREE.MeshStandardMaterial({ color: 0x2f3033, roughness: 0.6, metalness: 0.3 });
+  const box = new THREE.MeshStandardMaterial({ color: 0x3e3f43, roughness: 0.7 });
+  const smogTex = radial("rgba(118,106,90,0.55)", "rgba(118,106,90,0)");
+  const glowTex = radial("rgba(255,255,255,1)", "rgba(255,255,255,0)");
+  const tops = new Map(), pickables = [];
+  for (const s of stations) {
+    const [x, y] = xy(s.lon, s.lat), z = -y, g = new THREE.Group();
+    g.position.set(x, 0.5, z);
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.22, 7, 8), steel); pole.position.y = 3.5; g.add(pole);
+    const sb = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, 0.9), box); sb.position.y = 6.2; g.add(sb);
+    const led = new THREE.Mesh(new THREE.SphereGeometry(0.34, 12, 8), new THREE.MeshBasicMaterial({ color: STATE[s.status] })); led.position.y = 7.3; g.add(led);
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTex, color: STATE[s.status], transparent: true, opacity: 0.5, depthWrite: false })); glow.scale.set(2.6, 2.6, 1); glow.position.y = 7.3; g.add(glow);
+    g.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+    const pm = reading(s);
+    if (pm != null) {
+      const h = Math.max(pm, 4) * 0.34;
+      const col = new THREE.Mesh(new THREE.CylinderGeometry(1.9, 1.9, h, 28, 1, true),
+        new THREE.MeshLambertMaterial({ color: TINT[s.status], transparent: true, opacity: 0.55, side: THREE.DoubleSide, depthWrite: false }));
+      col.position.y = 8 + h / 2; g.add(col);
+      const capm = new THREE.Mesh(new THREE.CircleGeometry(1.9, 28), new THREE.MeshLambertMaterial({ color: TINT[s.status], transparent: true, opacity: 0.8, depthWrite: false }));
+      capm.rotation.x = -Math.PI / 2; capm.position.y = 8 + h; g.add(capm);
+      // smog: layered clouds, wider and thicker where the reading is higher
+      for (let k = 0; k < 3; k++) {
+        const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: smogTex, transparent: true, depthWrite: false, opacity: Math.min(0.75, 0.2 + pm / 260) * (1 - k * 0.2) }));
+        const size = 30 + pm * 0.55 + k * 12; sp.scale.set(size, size * 0.45, 1); sp.position.set((k - 1) * 4, 4 + k * 5, (k % 2) * 3);
+        g.add(sp);
+      }
+      tops.set(s.id, new THREE.Vector3(x, 0.5 + 8 + h + 1.2, z));
+    } else tops.set(s.id, new THREE.Vector3(x, 9, z));
+    sb.userData.id = s.id; pole.userData.id = s.id; pickables.push(sb, pole);
+    scene.add(g);
+  }
+  return { tops, pickables };
+}
+
+function buildDust(scene, median) {
+  const n = Math.round(Math.min(9000, 2500 + median * 45));
+  const pos = new Float32Array(n * 3), vel = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    pos[i * 3] = (Math.random() - 0.5) * 700; pos[i * 3 + 1] = 1 + Math.random() * 70; pos[i * 3 + 2] = (Math.random() - 0.5) * 760;
+    vel[i * 3] = 0.01 + Math.random() * 0.03; vel[i * 3 + 1] = (Math.random() - 0.4) * 0.008; vel[i * 3 + 2] = (Math.random() - 0.5) * 0.01;
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const dot = radial("rgba(100,92,80,1)", "rgba(100,92,80,0)");
+  const pts = new THREE.Points(g, new THREE.PointsMaterial({ size: 1.1, map: dot, color: 0x6e6457, transparent: true, opacity: 0.55, depthWrite: false, sizeAttenuation: true }));
+  scene.add(pts);
+  return () => {
+    for (let i = 0; i < n; i++) {
+      pos[i * 3] += vel[i * 3]; pos[i * 3 + 1] += vel[i * 3 + 1]; pos[i * 3 + 2] += vel[i * 3 + 2];
+      if (pos[i * 3] > 350) pos[i * 3] = -350;
+      if (pos[i * 3 + 1] > 72 || pos[i * 3 + 1] < 0.5) vel[i * 3 + 1] *= -1;
+    }
+    g.attributes.position.needsUpdate = true;
+  };
+}
+
+async function init(container, { stations, reading, makeMarker, onPick, onBackgroundClick }) {
+  const [wards, boundary] = await Promise.all([getJSON("geo/delhi_wards.json"), getJSON("geo/delhi_boundary.json")]);
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(FOG);
+  scene.fog = new THREE.Fog(FOG, 180, 820);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  container.appendChild(renderer.domElement);
+  renderer.domElement.setAttribute("aria-hidden", "true");
+
+  const camera = new THREE.PerspectiveCamera(38, 1, 1, 4000);
+  camera.position.set(-120, 150, 235);
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.target.set(10, 0, 10); controls.enableDamping = true; controls.dampingFactor = 0.06;
+  controls.minDistance = 60; controls.maxDistance = 900; controls.minPolarAngle = 0.25; controls.maxPolarAngle = 1.36;
+  controls.enableZoom = false; controls.autoRotateSpeed = 0.35; controls.update();
+
+  scene.add(new THREE.HemisphereLight(0xf7f7f8, 0xcfcfca, 1.6));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+  sun.position.set(-220, 320, 160); sun.castShadow = true;
+  Object.assign(sun.shadow.camera, { left: -380, right: 380, top: 380, bottom: -380, near: 10, far: 1200 });
+  sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0005; scene.add(sun);
+
+  const ringXY = buildGround(scene, wards, boundary);
+  buildCity(scene, ringXY);
+  buildLandmarks(scene);
+  const { tops, pickables } = buildMonitors(scene, stations, reading);
+  const vals = stations.map(reading).filter((v) => v != null).sort((a, b) => a - b);
+  const stepDust = buildDust(scene, vals.length ? vals[Math.floor(vals.length / 2)] : 40);
+
+  // HTML markers (the site's own status icons), kept above each monitor
+  const layer = document.createElement("div"); layer.className = "gt3d-markers"; container.appendChild(layer);
+  const marks = new Map();
+  for (const s of stations) { const el = makeMarker(s); layer.appendChild(el); marks.set(s.id, el); }
+
+  const size = () => { const w = container.clientWidth, h = container.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); };
+  new ResizeObserver(size).observe(container); size();
+
+  // click on the scene: a monitor, or the background
+  const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(); let down = null;
+  renderer.domElement.addEventListener("pointerdown", (e) => { down = [e.clientX, e.clientY]; controls.autoRotate = false; tween = null; });
+  renderer.domElement.addEventListener("pointerup", (e) => {
+    if (!down || Math.hypot(e.clientX - down[0], e.clientY - down[1]) > 5) return;
+    const r = renderer.domElement.getBoundingClientRect();
+    ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const hit = ray.intersectObjects(pickables, false)[0];
+    if (hit) onPick(hit.object.userData.id); else onBackgroundClick();
+  });
+
+  let tween = null, visible = true, immersive = false, first = true;
+  new IntersectionObserver(([en]) => { visible = en.isIntersecting; }).observe(container);
+  const v = new THREE.Vector3();
+  const loop = () => {
+    requestAnimationFrame(loop);
+    if (!visible && !immersive) return;
+    if (tween) {
+      const t = Math.min(1, (performance.now() - tween.t0) / tween.ms), e = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      controls.target.lerpVectors(tween.fromT, tween.toT, e); camera.position.lerpVectors(tween.fromC, tween.toC, e);
+      if (t >= 1) tween = null;
+    }
+    controls.update();
+    if (!reduced) stepDust();
+    renderer.render(scene, camera);
+    const w = container.clientWidth, h = container.clientHeight;
+    for (const [id, el] of marks) {
+      v.copy(tops.get(id)).project(camera);
+      const behind = v.z > 1, x = (v.x * 0.5 + 0.5) * w, y = (-v.y * 0.5 + 0.5) * h;
+      el.style.transform = `translate(${x}px, ${y}px) translate(-50%, -50%)`;
+      el.style.opacity = behind ? 0 : String(Math.max(0.25, Math.min(1, 1.6 - camera.position.distanceTo(tops.get(id)) / 700)));
+      el.style.pointerEvents = behind ? "none" : "auto";
+    }
+    if (first) { first = false; window.dispatchEvent(new CustomEvent("gt3d:ready")); }
+  };
+  loop();
+
+  return {
+    focus(id, close = true) {
+      const p = tops.get(id); if (!p) return;
+      const toT = new THREE.Vector3(p.x, 0, p.z);
+      const dir = camera.position.clone().sub(controls.target).normalize();
+      const dist = close ? (immersive ? 120 : 190) : camera.position.distanceTo(controls.target);
+      const toC = toT.clone().add(dir.multiplyScalar(dist)); toC.y = Math.max(toC.y, immersive ? 60 : 90);
+      tween = { t0: performance.now(), ms: reduced ? 1 : 1500, fromT: controls.target.clone(), toT, fromC: camera.position.clone(), toC };
+      controls.autoRotate = false;
+    },
+    setImmersive(on) {
+      immersive = on; controls.enableZoom = on; controls.autoRotate = on && !reduced;
+      if (on) {
+        const toT = controls.target.clone(), toC = toT.clone().add(new THREE.Vector3(-95, 75, 150));
+        tween = { t0: performance.now(), ms: reduced ? 1 : 2200, fromT: controls.target.clone(), toT, fromC: camera.position.clone(), toC };
+      } else {
+        tween = { t0: performance.now(), ms: reduced ? 1 : 1200, fromT: controls.target.clone(), toT: new THREE.Vector3(10, 0, 10), fromC: camera.position.clone(), toC: new THREE.Vector3(-120, 150, 235) };
+      }
+    },
+    select(id) { for (const [k, el] of marks) el.classList.toggle("sel", k === id); },
+  };
+}
+
+window.GT3D = { init };
+window.dispatchEvent(new CustomEvent("gt3d:loaded"));

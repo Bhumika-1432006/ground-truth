@@ -12,7 +12,7 @@ Reuse what worked on Leash. Nothing new unless it saves a day.
 | Storage + hosting | One S3 bucket (`index.html`, `assets/`, `data/`) behind CloudFront | #2. Falls back to the S3 website endpoint if CloudFront is blocked on the plan. |
 | Data in | OpenAQ API v3 `/sensors/{id}/measurements` (raw 15-min readings, grouped into IST hours by our code) + public archive `s3://openaq-data-archive` (backfill, us-east-1) | The archive is about 4 days behind, so the API covers the gap. |
 | Front end | Vanilla HTML/CSS/JS, no build step | Own design system in `site/theme.css`, visually referenced from neatlogs.com: light mode only: silver fog hero, product window, Geist + Geist Mono. One `index.html`, one `app.js`, one `theme.css`. |
-| Map | MapLibre GL 4.7.1 (vendored from npm), 3D | Pitched, foggy Delhi from our own ward data (DataMeet, CC BY-SA 2.5 IN), smog as a heatmap of real PM2.5, a 3D column per monitor; real streets and buildings from OpenFreeMap when reachable. Click the map for full-screen 3D. |
+| Map | three.js 0.160 (vendored from npm), our own 3D scene | Delhi in fog built from our own ward data (DataMeet, CC BY-SA 2.5 IN): city blocks, Qutub Minar, India Gate and the Lotus Temple, a mast per monitor with a column as tall as its PM2.5 and smog clouds, drifting dust. No tile server. Click for full-screen 3D. |
 | Chart | Chart.js 4.4.1 (vendored from npm) | Hour-of-day gap: last 7 vs 28 days, 11-17 window shaded, table view. |
 | Tests | pytest. Planted-anomaly test + physics unit tests + JSON contract test | Run in CI on every PR. |
 | CI/CD | GitHub Actions: `pytest` on PR; `sam deploy` on merge to main (OIDC role, no long-lived keys) | Copied from Leash. |

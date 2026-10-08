@@ -38,6 +38,8 @@ What we already know, so nobody re-learns it this weekend. Dated entries, newest
 
 ## 2026-10-08: the 3D map
 
+- First built with MapLibre on real map tiles; replaced the same day by our own three.js scene, so it looks the same everywhere (including where tile servers are blocked) and matches the fog theme.
+
 - MapLibre waits for every source before firing `load`, so one unreachable tile server stalls the whole map. The base city (wards, boundary) loads from our own files first; the online streets and 3D buildings are added only after a reachability check.
 - MapLibre positions markers itself; a `position` rule on the marker element breaks it.
 - Headless Chromium needs `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist` to render WebGL for screenshots and the video capture.

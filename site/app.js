@@ -44,7 +44,7 @@
   const pill = (status, label = STATUS[status].label) => `<span class="pill ${status}">${icon(status, 12)}${label}</span>`;
   const short = (name) => name.replace(/,\s*(New )?Delhi$/, "").replace(/\s+-\s+.*$/, "");
 
-  let latest = null, byId = new Map(), map = null, markers = new Map(), chart = null, selected = null, param = "pm10";
+  let latest = null, byId = new Map(), chart = null, selected = null, param = "pm10";
 
   // ---------- data ----------
   async function getJSON(url) {
@@ -252,73 +252,10 @@
     $("#ticks").innerHTML = Array.from({ length: 30 }, (_, i) => `<i style="animation-delay:${(i * 0.03).toFixed(2)}s">${tick}</i>`).join("");
   }
 
-  // ---------- 3D map (MapLibre): our own Delhi base, smog from real readings, a column per monitor ----------
-  const STATE_COLOUR = { ok: "#a9cdb0", watch: "#efc867", flag: "#e2867f", nodata: "#cfd0d3" }; // soft tints; the icon on top carries the state
-  const VECTOR = "https://tiles.openfreemap.org/planet"; // real streets and 3D buildings, when the browser can reach it
-  const HOME = { center: [77.16, 28.63], zoom: 9.7, pitch: 50, bearing: -16 };
-  let immersive = false, spinning = false, dustOn = false;
+  // ---------- 3D map (scene3d.js, three.js): our own Delhi in fog ----------
+  let view = null, immersive = false;
   const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  function disc(lon, lat, r = 280, n = 32) {
-    const dx = r / (111320 * Math.cos((lat * Math.PI) / 180)), dy = r / 110540;
-    const ring = Array.from({ length: n + 1 }, (_, i) => { const t = (i / n) * 2 * Math.PI; return [lon + dx * Math.cos(t), lat + dy * Math.sin(t)]; });
-    return { type: "Polygon", coordinates: [ring] };
-  }
-
-  function reading(s) { return s.latest?.pm25 ?? s.neighbours_latest?.pm25 ?? null; }
-
-  function mapStyle() {
-    return {
-      version: 8,
-      sky: { "sky-color": "#e8ebee", "horizon-color": "#e3e3e5", "fog-color": "#e6e6e7", "sky-horizon-blend": 0.75, "horizon-fog-blend": 0.85, "fog-ground-blend": 0.45, "atmosphere-blend": 0.6 },
-      sources: {
-        wards: { type: "geojson", data: "geo/delhi_wards.json" },
-        boundary: { type: "geojson", data: "geo/delhi_boundary.json" },
-      },
-      layers: [
-        { id: "bg", type: "background", paint: { "background-color": "#e9e8e5" } },
-        { id: "wards", type: "fill", source: "wards", paint: { "fill-color": "#f4f4f2" } },
-        { id: "ward-lines", type: "line", source: "wards", paint: { "line-color": "#d4d4d0", "line-width": ["interpolate", ["linear"], ["zoom"], 9, 0.4, 13, 1] } },
-        { id: "boundary", type: "line", source: "boundary", paint: { "line-color": "#8f9095", "line-width": 1.6, "line-dasharray": [3, 2] } },
-      ],
-    };
-  }
-
-  // real streets, water and 3D buildings, only if the tile server answers; otherwise the wards carry the city
-  async function addStreets() {
-    try {
-      const ctl = new AbortController(); setTimeout(() => ctl.abort(), 4000);
-      const r = await fetch(VECTOR, { signal: ctl.signal });
-      if (!r.ok) return;
-    } catch (e) { return; }
-    map.addSource("osm", { type: "vector", url: VECTOR, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · <a href="https://openfreemap.org">OpenFreeMap</a>' });
-    map.addLayer({ id: "water", type: "fill", source: "osm", "source-layer": "water", paint: { "fill-color": "#d5dbde" } }, "ward-lines");
-    map.addLayer({ id: "roads", type: "line", source: "osm", "source-layer": "transportation",
-      filter: ["in", ["get", "class"], ["literal", ["motorway", "trunk", "primary", "secondary"]]],
-      paint: { "line-color": "#ffffff", "line-width": ["interpolate", ["linear"], ["zoom"], 9, 0.5, 14, 3.5] } }, "ward-lines");
-    map.addLayer({ id: "buildings", type: "fill-extrusion", source: "osm", "source-layer": "building", minzoom: 12.5,
-      paint: { "fill-extrusion-color": "#e4e4e1", "fill-extrusion-height": ["coalesce", ["get", "render_height"], 9],
-               "fill-extrusion-base": ["coalesce", ["get", "render_min_height"], 0], "fill-extrusion-opacity": 0.9 } }, "smog");
-  }
-
-  function addAirLayers() {
-    const pts = latest.stations.filter((s) => reading(s) != null).map((s) => ({ type: "Feature", properties: { pm: reading(s) }, geometry: { type: "Point", coordinates: [s.lon, s.lat] } }));
-    map.addSource("air", { type: "geojson", data: { type: "FeatureCollection", features: pts } });
-    // the smog: thicker where the monitors read more
-    map.addLayer({ id: "smog", type: "heatmap", source: "air", paint: {
-      "heatmap-weight": ["interpolate", ["linear"], ["get", "pm"], 0, 0, 60, 0.45, 150, 1],
-      "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 9, 0.9, 13, 1.4],
-      "heatmap-radius": ["interpolate", ["exponential", 2], ["zoom"], 9, 46, 12, 150, 14, 420],
-      "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"],
-        0, "rgba(0,0,0,0)", 0.12, "rgba(170,160,144,0.22)", 0.35, "rgba(150,139,121,0.38)", 0.65, "rgba(128,116,98,0.52)", 1, "rgba(104,92,76,0.64)"],
-      "heatmap-opacity": 0.9 } }, "boundary");
-    // a column per monitor, as tall as its PM2.5 reading, in its state colour
-    const cols = latest.stations.map((s) => ({ type: "Feature",
-      properties: { h: Math.max(reading(s) ?? 6, 6) * 28, c: STATE_COLOUR[s.status] }, geometry: disc(s.lon, s.lat) }));
-    map.addSource("cols", { type: "geojson", data: { type: "FeatureCollection", features: cols } });
-    map.addLayer({ id: "cols", type: "fill-extrusion", source: "cols", paint: {
-      "fill-extrusion-color": ["get", "c"], "fill-extrusion-height": ["get", "h"], "fill-extrusion-base": 0, "fill-extrusion-opacity": 0.92, "fill-extrusion-vertical-gradient": true } });
-  }
+  const reading = (s) => s.latest?.pm25 ?? s.neighbours_latest?.pm25 ?? null;
 
   function markerEl(s) {
     const el = document.createElement("button");
@@ -332,22 +269,21 @@
   }
 
   function renderMap() {
-    map = new maplibregl.Map({
-      container: "map", style: mapStyle(), ...HOME, maxPitch: 78, scrollZoom: false, dragRotate: true,
-      attributionControl: { compact: true, customAttribution: 'Wards: <a href="https://github.com/datameet/Municipal_Spatial_Data">DataMeet</a> (CC BY-SA 2.5 IN)' },
-    });
-    map.addControl(new maplibregl.NavigationControl({ visualizePitch: true }), "top-right");
-    map.on("load", () => {
-      addAirLayers();
-      addStreets();
-      const sorted = [...latest.stations].sort((a, b) => ORDER.indexOf(b.status) - ORDER.indexOf(a.status));
-      for (const s of sorted) markers.set(s.id, new maplibregl.Marker({ element: markerEl(s) }).setLngLat([s.lon, s.lat]).addTo(map));
-      if (selected != null) markers.get(selected)?.getElement().classList.add("sel");
+    const start = async () => {
+      try {
+        view = await window.GT3D.init($("#map"), {
+          stations: latest.stations, reading, makeMarker: markerEl,
+          onPick: (id) => select(id, { fly: true }),
+          onBackgroundClick: () => { if (!immersive) enterImmersive(); },
+        });
+      } catch (e) {
+        $("#map").innerHTML = `<div class="empty"><h2>The 3D view couldn't start</h2><p>Your browser may not support WebGL. Every monitor is still listed in the panel and in the answers above.</p></div>`;
+        return;
+      }
+      if (selected != null) view.select(selected);
       mark("map:ready");
-    });
-    map.on("error", () => { /* an unreachable tile server only costs the streets; the city still draws */ });
-    map.on("click", () => { if (!immersive) enterImmersive(); });
-    ["mousedown", "touchstart", "wheel"].forEach((ev) => map.getCanvasContainer().addEventListener(ev, () => { spinning = false; }, { passive: true }));
+    };
+    if (window.GT3D) start(); else window.addEventListener("gt3d:loaded", start, { once: true });
     $("#enter3d").addEventListener("click", (e) => { e.stopPropagation(); enterImmersive(); });
     $("#exit3d").addEventListener("click", exitImmersive);
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && immersive) exitImmersive(); });
@@ -359,58 +295,16 @@
     $(".window").classList.add("immersive");
     document.documentElement.classList.add("lock");
     $("#exit3d").hidden = false; $("#enter3d").hidden = true;
-    map.scrollZoom.enable();
-    setTimeout(() => {
-      map.resize();
-      const s = byId.get(selected);
-      map.flyTo({ center: s ? [s.lon, s.lat] : HOME.center, zoom: s ? 11.6 : 10.4, pitch: 64, bearing: map.getBearing() - 28, duration: reduced ? 0 : 2600, essential: true });
-      startDust(); startSpin();
-    }, 30);
+    view?.setImmersive(true);
     mark("map:3d");
   }
 
   function exitImmersive() {
-    immersive = false; spinning = false; dustOn = false;
+    immersive = false;
     $(".window").classList.remove("immersive");
     document.documentElement.classList.remove("lock");
     $("#exit3d").hidden = true; $("#enter3d").hidden = false;
-    map.scrollZoom.disable();
-    setTimeout(() => { map.resize(); map.easeTo({ ...HOME, duration: reduced ? 0 : 1200 }); }, 30);
-  }
-
-  function startSpin() {
-    if (reduced) return;
-    spinning = true;
-    const step = () => { if (!spinning || !immersive) return; map.setBearing(map.getBearing() + 0.035); requestAnimationFrame(step); };
-    setTimeout(() => requestAnimationFrame(step), 2700);
-  }
-
-  // drifting dust in front of the camera; thicker when the city's readings are higher
-  function startDust() {
-    if (reduced || dustOn) return;
-    const cv = $("#dust"), ctx = cv.getContext("2d");
-    dustOn = true;
-    const vals = latest.stations.map(reading).filter((v) => v != null).sort((a, b) => a - b);
-    const median = vals.length ? vals[Math.floor(vals.length / 2)] : 40;
-    const n = Math.round(Math.min(260, 70 + median * 1.6));
-    let w = 0, h = 0;
-    const fit = () => { w = cv.width = cv.clientWidth * devicePixelRatio; h = cv.height = cv.clientHeight * devicePixelRatio; };
-    fit();
-    const ps = Array.from({ length: n }, () => ({ x: Math.random(), y: Math.random(), z: Math.random(), vx: 0.00004 + Math.random() * 0.00012, vy: -0.00002 - Math.random() * 0.00004 }));
-    const frame = () => {
-      if (!dustOn) { ctx.clearRect(0, 0, w, h); return; }
-      if (cv.clientWidth * devicePixelRatio !== w) fit();
-      ctx.clearRect(0, 0, w, h);
-      for (const p of ps) {
-        p.x += p.vx * (0.5 + p.z); p.y += p.vy * (0.5 + p.z);
-        if (p.x > 1.02) p.x = -0.02; if (p.y < -0.02) p.y = 1.02;
-        const r = (0.5 + p.z * 2.2) * devicePixelRatio;
-        ctx.fillStyle = `rgba(96, 88, 76, ${0.06 + p.z * 0.2})`;
-        ctx.beginPath(); ctx.arc(p.x * w, p.y * h, r, 0, Math.PI * 2); ctx.fill();
-      }
-      requestAnimationFrame(frame);
-    };
-    requestAnimationFrame(frame);
+    view?.setImmersive(false);
   }
 
   function renderLegend() {
@@ -422,13 +316,9 @@
   async function select(id, { fly = false, spot = null, quiet = false } = {}) {
     const s = byId.get(id);
     if (!s) return;
-    if (selected != null) markers.get(selected)?.getElement().classList.remove("sel");
     selected = id;
-    markers.get(id)?.getElement().classList.add("sel");
-    if (fly && map) {
-      spinning = false;
-      map.flyTo({ center: [s.lon, s.lat], zoom: Math.max(map.getZoom(), immersive ? 12.2 : 10.8), pitch: immersive ? 64 : map.getPitch(), duration: reduced ? 0 : 1600, essential: true });
-    }
+    view?.select(id);
+    if (fly) view?.focus(id);
     if (!quiet && location.hash !== `#${id}`) history.replaceState(null, "", `${location.search}#${id}`);
 
     const panel = $("#panel");
@@ -611,7 +501,7 @@
     $("#live").scrollIntoView({ behavior: "smooth", block: "start" });
     await wait(1500);
     enterImmersive();
-    caption("Ground Truth", `Each column is a monitor, as tall as its PM2.5 reading. The haze is thicker where the air is worse.`);
+    caption("Ground Truth", `Delhi in 3D. Each mast is a monitor; its column is as tall as its PM2.5 reading, and the smog is thicker where the air is worse.`);
     await wait(5000);
 
     mark("tour:physics");
