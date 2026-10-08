@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="vendor/maplibre/maplibre-gl.css">
 <link rel="stylesheet" href="theme.css">
 </head>
 <body id="top">
@@ -174,13 +174,15 @@
             <span class="label">Live map</span>
             <h2 class="h2" id="live-title"><span class="dim">Find the monitor you rely on.</span>See its answer, and why.</h2>
           </div>
-          <p class="sub">Click any marker. The panel shows what that monitor reads, what its neighbours read, and the three checks behind its answer.</p>
+          <p class="sub">Each column is a monitor, as tall as its PM2.5 reading; the haze is thicker where the air is worse. Click a monitor for its answer, or click the map to explore Delhi in 3D.</p>
         </div>
         <div class="window">
-          <div class="chrome"><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div><span class="url">groundtruth / delhi / live</span><span class="live" id="chrome-live">Live</span></div>
+          <div class="chrome"><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div><span class="url">groundtruth / delhi / live</span><span class="live" id="chrome-live">Live</span><button class="exit3d" id="exit3d" type="button" hidden>Exit 3D <span aria-hidden="true">✕</span></button></div>
           <div class="app">
             <div class="mapcol">
-              <div id="map" role="region" aria-label="Map of monitoring stations"></div>
+              <div id="map" role="region" aria-label="3D map of monitoring stations"></div>
+              <canvas id="dust" aria-hidden="true"></canvas>
+              <button class="enter3d" id="enter3d" type="button">Explore Delhi in 3D <span aria-hidden="true">⤢</span></button>
               <div class="legend" id="legend"></div>
             </div>
             <div class="panel" id="panel" aria-live="polite">
@@ -315,7 +317,7 @@
     </div>
     <div>
       <h4>Data</h4>
-      <ul><li>CPCB / DPCC monitors via <a href="https://openaq.org">OpenAQ</a></li><li>Map © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> © <a href="https://carto.com/attributions">CARTO</a></li></ul>
+      <ul><li>CPCB / DPCC monitors via <a href="https://openaq.org">OpenAQ</a></li><li>Map © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="https://openfreemap.org">OpenFreeMap</a></li><li>Wards: <a href="https://github.com/datameet/Municipal_Spatial_Data">DataMeet</a> (CC BY-SA 2.5 IN)</li></ul>
     </div>
     <div>
       <h4>Project</h4>
@@ -324,7 +326,7 @@
   </div>
 </footer>
 
-<script src="vendor/leaflet/leaflet.js"></script>
+<script src="vendor/maplibre/maplibre-gl.js"></script>
 <script src="vendor/chart.umd.js"></script>
 <script src="app.js"></script>
 </body>

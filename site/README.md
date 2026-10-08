@@ -5,9 +5,10 @@ The static front end: plain HTML, CSS and JS with no build step, served from S3 
 | File | What it is |
 |---|---|
 | `index.html` | Fog hero with a hand-drawn Delhi scene and a live example; the stats strip; "how it works in ten seconds" told with one real station; what the three answers mean (with the stations in each right now); the live map + station panel; the three checks, each with a picture from real data; who it is for; proof (30 of 30); the AWS flow; FAQ; foggy closing. |
-| `app.js` | Loads `data/latest.json` and `data/stations/<id>.json` (contract in `docs/STACK.md`). Draws the map (Leaflet) and the hour-of-day chart (Chart.js). Search, `#<id>` deep links, and the `?demo=1` tour. |
+| `app.js` | Loads `data/latest.json` and `data/stations/<id>.json` (contract in `docs/STACK.md`). Draws the 3D map (MapLibre: wards, smog from real readings, a column per monitor, fog, drifting dust, full-screen 3D on click) and the hour-of-day chart (Chart.js). Search, `#<id>` deep links, and the `?demo=1` tour. |
 | `theme.css` | The whole design system, light mode only: silver fog for the hero and closing, white and soft-grey surfaces, Geist + Geist Mono, the station-state colours, motion (off for reduced motion), breakpoints. Rules in the comment at the top. Visual reference: neatlogs.com (fog hero, two-tone headlines, mono labels, window frame); the fog scene is our own SVG. |
-| `vendor/` | Leaflet 1.9.4 and Chart.js 4.4.1 from npm, with their licences (both MIT/BSD-2). |
+| `vendor/` | MapLibre GL 4.7.1 (BSD-3) and Chart.js 4.4.1 (MIT) from npm, with their licences. |
+| `geo/` | Delhi wards and boundary (DataMeet, CC BY-SA 2.5 IN), the map's offline base. |
 
 Run it locally with real data: `make local`, then open http://localhost:8000. Try `#235` (Anand Vihar), or `?demo=1` for the self-playing tour used in the video.
 

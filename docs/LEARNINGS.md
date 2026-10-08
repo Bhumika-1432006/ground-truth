@@ -35,3 +35,9 @@ What we already know, so nobody re-learns it this weekend. Dated entries, newest
 - The judges see only the repo, the video and the writeup. "If the video does not show it, it does not count."
 - The organisers' warning: "a map mostly tells people something they can already sense." So each flagged station now carries what its 4 neighbours read right now (`neighbours_latest`): a number a person can act on, not just a red dot.
 - "Say plainly in your demo where your numbers come from and how fresh they are." The site shows `data_through` and the source on every page.
+
+## 2026-10-08: the 3D map
+
+- MapLibre waits for every source before firing `load`, so one unreachable tile server stalls the whole map. The base city (wards, boundary) loads from our own files first; the online streets and 3D buildings are added only after a reachability check.
+- MapLibre positions markers itself; a `position` rule on the marker element breaks it.
+- Headless Chromium needs `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader --ignore-gpu-blocklist` to render WebGL for screenshots and the video capture.
