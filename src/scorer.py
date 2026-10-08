@@ -261,12 +261,25 @@ def _assemble(keys, now, stations, prepared, result):
         ranks = [RANK[c["status"]] for c in checks.values()]
         status = max(ranks)
         latest = {p: last_value(clean[p]) for p in PARAMS}
+        # last IST hour that had a PM reading
+        last_pm_idx = next((i for i in range(len(keys) - 1, -1, -1)
+                            if clean["pm25"][i] is not None or clean["pm10"][i] is not None), None)
+        last_reading = keys[last_pm_idx] if last_pm_idx is not None else None
+        # silent for 3+ hours -> nodata regardless of check scores
+        silent = last_pm_idx is None or (len(keys) - 1 - last_pm_idx) >= 3
+        if silent:
+            status = RANK["nodata"]
+            for k in checks:
+                if checks[k]["status"] != "nodata":
+                    checks[k] = {"status": "nodata",
+                                 "detail": f"No reading since {last_reading or 'unknown'}."}
         # what the stations around it read right now: the number to use when this one is in doubt
         around = {p: med([last_value(prepared[i][0][p]) for i in nb], need=2) for p in ("pm25", "pm10")}
         out_stations.append({
             "id": s["id"], "name": s["name"], "lat": s["lat"], "lon": s["lon"],
             "region": "NCR" if any(w in s["name"] for w in NCR) else "Delhi",
             "status": next(k for k, v in RANK.items() if v == status), "checks": checks, "latest": latest,
+            "last_reading": last_reading,
             "neighbours_latest": {p: None if v is None else round(v, 2) for p, v in around.items()}})
         per_station[s["id"]] = {
             "id": s["id"], "name": s["name"], "neighbours": nb,

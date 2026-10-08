@@ -153,7 +153,7 @@ def test_latest_json_contract(baseline):
     json.dumps(latest)  # serialisable, no NaN
     assert latest["data_through"] == "2025-11-30T23:00:00+05:30"
     for s in latest["stations"]:
-        assert {"id", "name", "lat", "lon", "region", "status", "checks", "latest", "neighbours_latest"} <= set(s)
+        assert {"id", "name", "lat", "lon", "region", "status", "checks", "latest", "last_reading", "neighbours_latest"} <= set(s)
         assert set(s["neighbours_latest"]) == {"pm25", "pm10"}
         assert s["status"] in STATUSES and s["region"] in {"Delhi", "NCR"}
         assert set(s["checks"]) == {"physics", "neighbours", "history"}
@@ -207,3 +207,28 @@ def test_matches_spike_numbers():
         d = per[sid]["daily"]
         assert statistics.median([r["d_pm10"] for r in d if r["d_pm10"] is not None]) == pytest.approx(pm10, abs=0.01)
         assert statistics.median([r["d_relativehumidity"] for r in d if r["d_relativehumidity"] is not None]) == pytest.approx(rh, abs=0.1)
+
+
+# ---------- per-monitor freshness (#18) ----------
+
+def test_silent_station_becomes_nodata(data):
+    """A station with no PM in its last 4 hours gets status nodata and last_reading points to the gap start."""
+    import copy
+    hourly, stations = data
+    sid = 8917  # Ashok Vihar
+    h = copy.deepcopy(hourly)
+    # blank the last 4 hours of pm10 and pm25
+    for p in ("pm10", "pm25"):
+        for k in sorted(h[str(sid)][p])[-4:]:
+            del h[str(sid)][p][k]
+    latest, _ = scorer.score(h, stations, NOW)
+    s = by_id(latest)[sid]
+    assert s["status"] == "nodata"
+    assert s["last_reading"] is not None  # still has older data
+    for c in s["checks"].values():
+        assert c["status"] == "nodata"
+
+
+def test_active_station_has_last_reading(baseline):
+    for s in baseline[0]["stations"]:
+        assert "last_reading" in s
