@@ -4,7 +4,7 @@
 
 Environmental Hacks 2026 · Air track · team thegoodengineers
 
-![Ground Truth: the fog hero, the ten-second explainer and the 3D Delhi](docs/img/demo.gif)
+_Demo GIF: added on submission day, cut from the video recording._
 
 **Live site:** _CloudFront URL after `make deploy`_ · **Demo video:** _YouTube link on submission_ · **Writeup:** [docs/submission.md](docs/submission.md)
 
