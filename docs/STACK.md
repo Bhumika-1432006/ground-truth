@@ -10,7 +10,7 @@ Reuse what worked on Leash. Nothing new unless it saves a day.
 | Schedule | EventBridge `rate(1 hour)` -> ingest Lambda | #3 |
 | Secrets | SSM SecureString `/ground-truth/openaq-key` | #1. Never in the repo. |
 | Storage + hosting | One S3 bucket (`index.html`, `assets/`, `data/`) behind CloudFront | #2. Falls back to the S3 website endpoint if CloudFront is blocked on the plan. |
-| Data in | OpenAQ API v3 (latest hours) + public archive `s3://openaq-data-archive` (backfill, us-east-1) | The archive is about 4 days behind, so the API covers the gap. |
+| Data in | OpenAQ API v3 `/sensors/{id}/measurements` (raw 15-min readings, grouped into IST hours by our code) + public archive `s3://openaq-data-archive` (backfill, us-east-1) | The archive is about 4 days behind, so the API covers the gap. |
 | Front end | Vanilla HTML/CSS/JS, no build step | Leash paper design system (tokens, type, cards). One `index.html`, one `app.js`, one `style.css`. |
 | Map | Leaflet 1.9.4 (cdnjs) + OSM tiles | Light and well known. Show attribution. |
 | Chart | Chart.js 4.4.x (cdnjs, exact version pinned) | Hour-of-day gap line, neighbour band, 11-17 window shaded. |

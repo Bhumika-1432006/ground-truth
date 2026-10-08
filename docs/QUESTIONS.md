@@ -18,7 +18,8 @@ Answer them in place, with a name and date. Blockers first.
 
 ## Data and product
 
-9. **OpenAQ API rate limit for our key.** About 50 stations hourly is fine; a 28-day backfill through the API is not. Plan: backfill from the archive and use the API only for the last 4 days. Confirm the limit on the key's dashboard.
-10. Do we include NCR stations (Noida, Ghaziabad, Gurugram, Faridabad) on the map? Proposal: yes, because they hold the clearest physics failures (Vikas Sadan, Arya Nagar), and label them NCR.
-11. Thresholds for watch and flag are a first guess (PLAN.md). Freeze them on Friday after one run on Oct-Nov 2025 data, and don't tune them to make a station we like light up.
-12. Wording on the site for flagged stations. Proposal: "doesn't agree with its neighbours", "changed against its own history", "reports impossible values". Never "fake", "tampered" or "sprayed".
+9. **Check on the first live run (`make run`):** the `datetime_from`, `limit` and `page` query names on `/sensors/{id}/measurements` (taken from the docs, not yet called with a key), and `overlap_ratio` about 1.0. The free limit is 60/min and 2,000/hour (docs); a run makes about 260 calls in about 5 min.
+10. **OpenAQ API rate limit for our key.** About 50 stations hourly is fine; a 28-day backfill through the API is not. Plan: backfill from the archive and use the API only for the last 4 days. Confirm the limit on the key's dashboard.
+11. Do we include NCR stations (Noida, Ghaziabad, Gurugram, Faridabad) on the map? Proposal: yes, because they hold the clearest physics failures (Vikas Sadan, Arya Nagar), and label them NCR.
+12. Thresholds for watch and flag are a first guess (PLAN.md). Freeze them on Friday after one run on Oct-Nov 2025 data, and don't tune them to make a station we like light up.
+13. Wording on the site for flagged stations. Proposal: "doesn't agree with its neighbours", "changed against its own history", "reports impossible values". Never "fake", "tampered" or "sprayed".

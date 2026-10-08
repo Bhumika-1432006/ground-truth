@@ -6,6 +6,7 @@ The backend. Pure Python 3.11 standard library, with no dependencies, so the sam
 |---|---|
 | `stations.tsv` | The 52 OpenAQ locations in the Delhi box (id, name, lat, lon), from the spike sweep. |
 | `backfill.py` | Builds hourly history from the public OpenAQ archive on S3 (no key). Lists the bucket to find files, retries every error and checks every gzip. Writes `{station_id: {param: {"YYYY-MM-DDTHH": value}}}` with IST hour keys. |
+| `ingest.py` | The hourly Lambda (#3). Reads the OpenAQ key from SSM, fetches raw readings per sensor from the API (paced under 60 requests/min), averages them into IST hours like the backfill, keeps a 29-day cache in S3 (`data/raw/hourly.json`), runs the scorer and writes `data/latest.json` + `data/stations/<id>.json`. |
 | `scorer.py` | The three checks per station (physics, neighbours, history). Writes `latest.json` and `stations/<id>.json` in the shape in `docs/STACK.md`. |
 
 ## Run
@@ -16,7 +17,7 @@ python src/scorer.py hourly.json out            # scores the 28 days ending at t
 python src/scorer.py hourly.json out --now 2025-11-30T23 --days 61
 ```
 
-The archive runs about 4 days behind real time, so for live data the ingest Lambda (#3) adds the latest hours from the OpenAQ API.
+The archive runs about 4 days behind real time, so for live data `ingest.py` adds the latest hours from the OpenAQ API. Deploy and run it with the root `Makefile` (`make deploy`, `make seed`, `make run`).
 
 ## How the checks work
 
