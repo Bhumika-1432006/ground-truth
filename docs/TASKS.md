@@ -4,8 +4,8 @@ Every task is a GitHub issue. This file is the map; the issues hold the checklis
 
 ## Abhijeet (thegoodengineer): AWS
 
-| # | Task | P | Day |
-|---|---|---|---|
+| # | # | Task | P | Day |
+|---|---|---|---|---|
 | 1 | AWS account, profile, OpenAQ key in SSM (us-east-1) | P0 | Thu |
 | 2 | Walking skeleton: S3 + CloudFront + one Lambda, public URL | P0 | Thu |
 | 3 | Hourly ingest: EventBridge -> Lambda -> JSON in S3 | P0 | Fri |
@@ -14,22 +14,22 @@ Every task is a GitHub issue. This file is the map; the issues hold the checklis
 
 ## Chirag (Chirag6722): scorer, tests, story
 
-| Task | P | Day |
-|---|---|---|
-| Scorer: physics, neighbour and history checks in pure Python, writing the JSON contract | P0 | Fri |
-| Backfill: seed the 28-day hourly cache from the public archive | P0 | Thu-Fri |
-| Tests + CI: planted-anomaly test, physics unit tests, contract test, GitHub Actions | P0 | Fri |
-| Video: script Thursday, render Saturday (Hyperframes + edge-tts) | P1 | Thu -> Sat |
-| Write-up and submission, submitted Saturday night | P0 | Sat |
+| # | Task | P | Day |
+|---|---|---|---|
+| 8 | Scorer: physics, neighbour and history checks in pure Python, writing the JSON contract | P0 | Fri |
+| 7 | Backfill: seed the 28-day hourly cache from the public archive | P0 | Thu-Fri |
+| 9 | Tests + CI: planted-anomaly test, physics unit tests, contract test, GitHub Actions | P0 | Fri |
+| 10 | Video: script Thursday, render Saturday (Hyperframes + edge-tts) | P1 | Thu -> Sat |
+| 11 | Write-up and submission, submitted Saturday night | P0 | Sat |
 
 ## Bhumika (Bhumika-1432006): the site
 
-| Task | P | Day |
-|---|---|---|
-| Site skeleton in the Leash paper design, reading `data/latest.json` (mock first) | P0 | Thu |
-| Leaflet map: stations coloured by status, legend, last-updated time | P0 | Fri |
-| Station panel: three check cards + Chart.js hour-of-day gap chart | P0 | Fri |
-| Design pass on real data: mobile, empty and error states, "How it works / limits" section | P1 | Sat |
+| # | Task | P | Day |
+|---|---|---|---|
+| 12 | Site skeleton in the Leash paper design, reading `data/latest.json` (mock first) | P0 | Thu |
+| 13 | Leaflet map: stations coloured by status, legend, last-updated time | P0 | Fri |
+| 14 | Station panel: three check cards + Chart.js hour-of-day gap chart | P0 | Fri |
+| 15 | Design pass on real data: mobile, empty and error states, "How it works / limits" section | P1 | Sat |
 
 ## Ayush (AyushVUpadhye): once he's a collaborator
 
