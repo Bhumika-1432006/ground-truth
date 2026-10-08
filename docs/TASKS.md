@@ -1,51 +1,39 @@
 # Tasks
 
-Every task is a GitHub issue. This file is the map; the issues hold the checklists. P0 = the demo doesn't exist without it.
+Each task is self-contained: what to do, the files it touches, and a test for "done". Anyone can pick one up without earlier context. Read `docs/PLAN.md` and `docs/STACK.md` first. Tick a task when its done-test passes, then commit.
 
-## Abhijeet (thegoodengineer): AWS
+Owners: **Abhijeet** (thegoodengineer) = AWS · **Chirag** (Chirag6722) = backend, tests, story · **Bhumika** (Bhumika-1432006) = site and design · **Ayush** (AyushVUpadhye) = QA and review, once he's on the repo.
 
-| # | Task | P | Day |
-|---|---|---|---|
-| 1 | AWS account, profile, OpenAQ key in SSM (us-east-1) | P0 | Thu |
-| 2 | Walking skeleton: S3 + CloudFront + one Lambda, public URL | P0 | Thu |
-| 3 | Hourly ingest: EventBridge -> Lambda -> JSON in S3 | P0 | Fri |
-| 4 | Video proof shot: 15 s of the real console | P1 | Sat |
-| 5 | Stop the Leash EC2 brain | P1 | Thu |
+## Must
 
-## Chirag (Chirag6722): scorer, tests, story
+- [x] **Spike: is the data good enough?** Files: `spike/`. Done: `spike/RESULTS.md` answers it.
+- [x] **Backfill from the archive** (#7). Files: `src/backfill.py`. Done: `python src/backfill.py out.json --days 29` writes 52 stations.
+- [x] **Scorer: three checks** (#8). Files: `src/scorer.py`. Done: `make test` green; 235 and 8235 match `spike/RESULTS.md`.
+- [x] **Tests + CI** (#9). Files: `tests/`, `.github/workflows/test.yml`. Done: CI green on the PR; breaking the 11-17 window turns it red.
+- [x] **Ingest Lambda + SAM + Makefile.** Files: `src/ingest.py`, `template.yaml`, `Makefile`, `tests/test_ingest.py`. Done: `make lint test` green.
+- [ ] **AWS account, profile, key in SSM** (#1, Abhijeet). Done: `aws sts get-caller-identity --profile groundtruth` works and the SSM parameter exists.
+- [ ] **First deploy** (#2, Abhijeet). Uses `template.yaml`. Done: `make deploy && make url` prints an HTTPS URL that serves `index.html`.
+- [ ] **Live data** (#3, Abhijeet). Done: `make seed && make run` prints `"scored": true` and an `overlap_ratio` near 1.0 for pm10/pm25; two scheduled runs later `data_through` has advanced.
+- [ ] **Site v1: map + station panel + `?demo=1`** (#12-#14). Files: `site/index.html`, `site/app.js`, `site/theme.css`. Done: `make local`, open `http://localhost:8000`: all stations on the map; clicking one opens three check cards and the hour-of-day chart; `?demo=1` plays the tour by itself; no console errors.
+- [ ] **Video pipeline** (#10). Files: `video/script.md`, `video/narrate.py`, `video/scenes/scenes.html`, `video/record.py`, `video/capture_demo.py`, `video/assemble.py`. Done: `make video` produces `video/final.mp4` under 3:00, never sped up.
+- [ ] **Console clip** (#4, Abhijeet, Saturday). Done: `video/supply/console.mp4`, 10-15 s, 1920x1080.
+- [ ] **Writeup + submission** (#11, Chirag, Saturday night). Files: `docs/submission.md`, `README.md`. Done: form submitted, screenshot in #11.
 
-| # | Task | P | Day |
-|---|---|---|---|
-| 7 | Backfill: seed the 28-day hourly cache from the public archive | P0 | Thu-Fri |
-| 8 | Scorer: physics, neighbour and history checks in pure Python, writing the JSON contract | P0 | Fri |
-| 9 | Tests + CI: planted-anomaly test, physics unit tests, contract test, GitHub Actions | P0 | Fri |
-| 10 | Video: script Thursday, render Saturday (Hyperframes + edge-tts) | P1 | Thu -> Sat |
-| 11 | Write-up and submission, submitted Saturday night | P0 | Sat |
+## Should
 
-## Bhumika (Bhumika-1432006): the site
+- [ ] **UI rounds with screenshots** (#15). Files: `site/*`. Done: screenshots at 1440, 1024 and 400 px reviewed and fixed; no horizontal scroll; loading, empty and error states designed.
+- [ ] **README for judges.** Files: `README.md`. Done: GIF at the top, live URL, video link, architecture, `make local`, test count from a real run.
+- [ ] **Deploy from CI on merge to main** (OIDC role, no stored keys). Files: `.github/workflows/deploy.yml`. Done: a merge updates the live site.
+- [ ] **Blog on AWS Builder Center** (enters the top-5 blogs prize). Files: `docs/BLOG.md`. Done: published and linked in the submission.
 
-| # | Task | P | Day |
-|---|---|---|---|
-| 12 | Site skeleton in the Leash paper design, reading `data/latest.json` (mock first) | P0 | Thu |
-| 13 | Leaflet map: stations coloured by status, legend, last-updated time | P0 | Fri |
-| 14 | Station panel: three check cards + Chart.js hour-of-day gap chart | P0 | Fri |
-| 15 | Design pass on real data: mobile, empty and error states, "How it works / limits" section | P1 | Sat |
+## Nice
 
-## Ayush (AyushVUpadhye): once he's a collaborator
+- [ ] **Station history page** journalists can link to (`#235/history`).
+- [ ] **NASA FIRMS fire layer** for stubble-burning days.
+- [ ] **Hindi copy** for the statuses and the limits section.
 
-Not yet on the repo, so no issues are assigned. Suggested:
-- QA on Saturday: open the live URL on 3 phones and 2 browsers, try every station, and file bugs.
-- Voice-over review and captions for the video.
-- Second pair of eyes on the write-up's claims against `spike/RESULTS.md`.
+## Ayush (once he's a collaborator)
 
-## Order of work (critical path)
-
-```
-#1 AWS -> #2 skeleton URL -> #3 hourly ingest ----------> live data on the site
-             |                    ^
-backfill ----+---> scorer --------+   (scorer + tests can run locally on spike data before AWS exists)
-mock JSON -> site skeleton -> map -> panel -> design pass on real data
-video script (Thu) ---------------------------> record Sat (needs #4 + live site)
-```
-
-The site and the scorer meet only at the JSON contract in `docs/STACK.md`. Don't change it without telling the other side.
+- QA on Saturday: the live URL on 3 phones and 2 browsers, every station clicked, bugs filed.
+- Voice-over review for the video.
+- Check the writeup's claims against `spike/RESULTS.md`.

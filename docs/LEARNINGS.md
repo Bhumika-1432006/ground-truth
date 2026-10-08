@@ -1,15 +1,15 @@
 # Learnings
 
-What we already know, so nobody re-learns it this weekend.
+What we already know, so nobody re-learns it this weekend. Dated entries, newest last.
 
-## From First Commit (Leash, 28/30)
+## Before the event: First Commit (Leash, 28/30)
 
 - **Design and the demo video cost 1 point each.** Both were left to the end. This time the design pass gets its own slot (Saturday morning, on real data), and the video script starts Thursday.
 - A real AWS console clip in the video proves the cloud part isn't a mock (#4).
 - Submit the night before the deadline. Sunday is a buffer only.
 - One working feature beats five half-finished ones. The three checks share one data path; if time runs short, cut the history check, not the polish.
 
-## From the data spike (Oct 2026, `spike/`)
+## 2026-10-08: the data spike (`spike/`)
 
 - **OpenAQ archive:** `https://openaq-data-archive.s3.amazonaws.com/records/csv.gz/locationid=<id>/year=<Y>/month=<MM>/location-<id>-<YYYYMMDD>.csv.gz`. Public, us-east-1, 15-minute rows, timestamps in +05:30.
 - **The archive is about 4 days behind** (8 Oct: latest file 4 Oct). Live data must come from the API.
@@ -21,7 +21,7 @@ What we already know, so nobody re-learns it this weekend.
 - **Physics checks fire on real data:** PM2.5 > PM10 in 1,044 of 66,831 station-hours. Vikas Sadan, Gurugram: 31% of hours, plus 720 zero or negative hourly values. These are our clearest, least arguable flags.
 - **Honest headline:** with this method, neither station named in the news stands out. Say so on the site and in the video. It makes everything else more credible.
 
-## From building the scorer (8 Oct)
+## 2026-10-08: building the scorer and the ingest
 
 - **The planted-anomaly experiment** (52 stations, Nov 2025): a 40% daytime PM10 cut over 7 days is caught at 30 of 30 quiet stations. It newly flags 3 other stations across all 30 plantings, and moves about 1.6 others per planting (mostly between ok and watch).
 - Two things made that work. A **Theil-Sen** city line, because a least-squares line let the planted station tilt everyone's z-scores. And a **second pass** that leaves first-pass suspects out of their neighbours' references.
@@ -29,3 +29,9 @@ What we already know, so nobody re-learns it this weekend.
 - **The API's `/hours` endpoint averages UTC hours, which run 13:30-14:30 IST, not 13:00-14:00.** Mixing those with archive hours would shift the 11-17 window by half an hour for live data only. The ingest fetches raw `/measurements` and groups them into IST hours with the same code as the backfill.
 - **The ingest logs `overlap_ratio`**: API values divided by archive values on the hours both have. On the first live run it should be about 1.0 for every parameter. If CO shows about 1000, the API serves µg/m³ where the archive has mg/m³.
 - **On 4 Oct 2026 data** Jahangirpuri is flagged on history: daytime humidity against its neighbours is +5.2 pts above its previous 3 weeks. It's the same signature as after the Oct 2025 reports. It is still one humidity sensor, so present it as "worth a look", not as evidence of spraying.
+
+## 2026-10-08: reading the rules and the organisers' post
+
+- The judges see only the repo, the video and the writeup. "If the video does not show it, it does not count."
+- The organisers' warning: "a map mostly tells people something they can already sense." So each flagged station now carries what its 4 neighbours read right now (`neighbours_latest`): a number a person can act on, not just a red dot.
+- "Say plainly in your demo where your numbers come from and how fresh they are." The site shows `data_through` and the source on every page.
