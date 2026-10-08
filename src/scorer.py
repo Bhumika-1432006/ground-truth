@@ -57,6 +57,45 @@ def pct(log_gap):
     return (math.exp(log_gap) - 1) * 100
 
 
+# ---------- CPCB AQI band ----------
+# Breakpoints from CPCB's National Air Quality Index (2014), Table 1.
+# PM2.5 and PM10 are 24-h averages in µg/m³.
+_PM25_BP = [(0, 30, "Good"), (31, 60, "Satisfactory"), (61, 90, "Moderate"),
+            (91, 120, "Poor"), (121, 250, "Very poor"), (251, 9999, "Severe")]
+_PM10_BP = [(0, 50, "Good"), (51, 100, "Satisfactory"), (101, 250, "Moderate"),
+            (251, 350, "Poor"), (351, 430, "Very poor"), (431, 9999, "Severe")]
+_BAND_ORDER = ["Good", "Satisfactory", "Moderate", "Poor", "Very poor", "Severe"]
+AQI_ADVICE = {
+    "Good": "Air quality is good. Normal outdoor activity is fine.",
+    "Satisfactory": "Air quality is acceptable. Sensitive individuals may want to limit prolonged outdoor exertion.",
+    "Moderate": "Sensitive groups should reduce prolonged outdoor exertion.",
+    "Poor": "Everyone may begin to experience health effects. Limit prolonged outdoor exertion.",
+    "Very poor": "Keep children's outdoor activity short. Avoid exertion outdoors.",
+    "Severe": "Avoid all outdoor activity. Keep windows closed.",
+}
+
+
+def aqi_band(pm25=None, pm10=None):
+    """Return the worse of the two CPCB AQI bands, or None if both are missing."""
+    def _band(val, breakpoints):
+        if val is None:
+            return None
+        for lo, hi, label in breakpoints:
+            if lo <= val <= hi:
+                return label
+        return "Severe"
+
+    b25 = _band(pm25, _PM25_BP)
+    b10 = _band(pm10, _PM10_BP)
+    if b25 is None and b10 is None:
+        return None
+    if b25 is None:
+        return b10
+    if b10 is None:
+        return b25
+    return max(b25, b10, key=lambda b: _BAND_ORDER.index(b))
+
+
 def updown(p):
     return "about the same" if abs(p) < 0.5 else f"{abs(p):.0f}% {'higher' if p > 0 else 'lower'}"
 
@@ -263,10 +302,13 @@ def _assemble(keys, now, stations, prepared, result):
         latest = {p: last_value(clean[p]) for p in PARAMS}
         # what the stations around it read right now: the number to use when this one is in doubt
         around = {p: med([last_value(prepared[i][0][p]) for i in nb], need=2) for p in ("pm25", "pm10")}
+        band = aqi_band(latest.get("pm25"), latest.get("pm10"))
+        neighbours_band = aqi_band(around.get("pm25"), around.get("pm10"))
         out_stations.append({
             "id": s["id"], "name": s["name"], "lat": s["lat"], "lon": s["lon"],
             "region": "NCR" if any(w in s["name"] for w in NCR) else "Delhi",
             "status": next(k for k, v in RANK.items() if v == status), "checks": checks, "latest": latest,
+            "band": band, "neighbours_band": neighbours_band,
             "neighbours_latest": {p: None if v is None else round(v, 2) for p, v in around.items()}})
         per_station[s["id"]] = {
             "id": s["id"], "name": s["name"], "neighbours": nb,

@@ -152,8 +152,10 @@ def test_latest_json_contract(baseline):
     latest, per_station = baseline
     json.dumps(latest)  # serialisable, no NaN
     assert latest["data_through"] == "2025-11-30T23:00:00+05:30"
+    AQI_BANDS = {"Good", "Satisfactory", "Moderate", "Poor", "Very poor", "Severe", None}
     for s in latest["stations"]:
-        assert {"id", "name", "lat", "lon", "region", "status", "checks", "latest", "neighbours_latest"} <= set(s)
+        assert {"id", "name", "lat", "lon", "region", "status", "checks", "latest",
+                "neighbours_latest", "band", "neighbours_band"} <= set(s)
         assert set(s["neighbours_latest"]) == {"pm25", "pm10"}
         assert s["status"] in STATUSES and s["region"] in {"Delhi", "NCR"}
         assert set(s["checks"]) == {"physics", "neighbours", "history"}
@@ -162,6 +164,40 @@ def test_latest_json_contract(baseline):
         worst = max(scorer.RANK[c["status"]] for c in s["checks"].values())
         assert scorer.RANK[s["status"]] == worst
         assert set(s["latest"]) == set(scorer.PARAMS)
+        assert s["band"] in AQI_BANDS
+        assert s["neighbours_band"] in AQI_BANDS
+
+
+# ---------- AQI band ----------
+
+def test_aqi_band_breakpoints():
+    assert scorer.aqi_band(pm25=30) == "Good"
+    assert scorer.aqi_band(pm25=31) == "Satisfactory"
+    assert scorer.aqi_band(pm25=60) == "Satisfactory"
+    assert scorer.aqi_band(pm25=61) == "Moderate"
+    assert scorer.aqi_band(pm25=90) == "Moderate"
+    assert scorer.aqi_band(pm25=91) == "Poor"
+    assert scorer.aqi_band(pm25=120) == "Poor"
+    assert scorer.aqi_band(pm25=121) == "Very poor"
+    assert scorer.aqi_band(pm25=250) == "Very poor"
+    assert scorer.aqi_band(pm25=251) == "Severe"
+
+
+def test_aqi_band_pm10_breakpoints():
+    assert scorer.aqi_band(pm10=50) == "Good"
+    assert scorer.aqi_band(pm10=51) == "Satisfactory"
+    assert scorer.aqi_band(pm10=430) == "Very poor"
+    assert scorer.aqi_band(pm10=431) == "Severe"
+
+
+def test_aqi_band_uses_worse_of_two():
+    assert scorer.aqi_band(pm25=30, pm10=431) == "Severe"
+    assert scorer.aqi_band(pm25=251, pm10=50) == "Severe"
+
+
+def test_aqi_band_none_when_both_missing():
+    assert scorer.aqi_band() is None
+    assert scorer.aqi_band(pm25=None, pm10=None) is None
 
 
 def test_station_json_contract(baseline):
