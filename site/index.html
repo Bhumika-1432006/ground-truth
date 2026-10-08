@@ -84,11 +84,13 @@
   <div class="wrap">
     <a class="wordmark" href="#top" aria-label="Ground Truth home">ground<b>truth</b></a>
     <nav aria-label="Sections">
+      <a href="#why">Why</a>
       <a href="#story">How it works</a>
       <a href="#live">Live map</a>
       <a href="#proof">Proof</a>
       <a href="#faq">FAQ</a>
       <span class="fresh" id="fresh">Loading data…</span>
+      <span class="pulse" id="pulse" hidden></span>
     </nav>
   </div>
 </header>
@@ -106,7 +108,7 @@
           <input id="search" type="search" placeholder="Find your station, e.g. Anand Vihar" autocomplete="off" aria-autocomplete="list" aria-controls="search-list">
           <ul id="search-list" role="listbox" hidden></ul>
         </div>
-        <a class="btn outline" href="?demo=1" id="tour-btn">Watch the tour <span class="arr">↗</span></a>
+        <a class="tour-link" href="?demo=1" id="tour-btn">or watch the 60-second tour <span aria-hidden="true">→</span></a>
       </div>
     </div>
     <div class="scene" aria-hidden="true"><svg><use href="#scene-art"/></svg></div>
@@ -125,6 +127,75 @@
       </div>
     </div>
   </section>
+
+    <section class="sec why" id="why" aria-labelledby="why-title">
+      <div class="wrap">
+        <div class="sec-head center">
+          <span class="label">The problem, and our answer</span>
+          <h2 class="h2" id="why-title"><span class="dim">Delhi decides on these numbers.</span>Nobody checks the monitors.</h2>
+        </div>
+        <div class="why-grid">
+          <article class="why-card problem">
+            <span class="label">The problem</span>
+            <h3>A number on a screen doesn't tell you if the monitor behind it works.</h3>
+            <ul class="why-list">
+              <li><b>Real decisions ride on it.</b> A principal keeps assembly outdoors, a parent takes a child to the park, the city stops construction, all on what about 40 monitors report.</li>
+              <li><b>Monitors go wrong.</b> Sensors drift, break, get dusty or get moved, and the number keeps publishing as if nothing happened.</li>
+              <li><b>Sometimes worse.</b> In October 2025, water tankers were filmed spraying near a Delhi monitor, which makes the air read cleaner than it is.</li>
+            </ul>
+            <p class="why-punch">Today, nobody can tell a working monitor from a broken one.</p>
+          </article>
+          <article class="why-card answer">
+            <span class="label">Our answer: Ground Truth</span>
+            <h3>Every monitor, checked every hour, with a plain answer.</h3>
+            <ol class="why-checks">
+              <li><span class="why-n">1</span><div><b>Physics:</b> is the reading even possible? Fine dust can never be more than all dust.</div></li>
+              <li><span class="why-n">2</span><div><b>Neighbours:</b> does it agree with the four monitors around it?</div></li>
+              <li><span class="why-n">3</span><div><b>History:</b> did it suddenly change against its own last three weeks?</div></li>
+            </ol>
+            <div class="why-answers">
+              <span data-pill="ok"></span><span data-pill="watch"></span><span data-pill="flag"></span><span data-pill="nodata"></span>
+            </div>
+            <p class="why-punch">When a monitor is in doubt, we show what the four around it read right now, so you still have a number you can act on.</p>
+          </article>
+        </div>
+        <figure class="morning" aria-labelledby="morning-cap">
+          <figcaption id="morning-cap" class="label">An example morning in East Delhi</figcaption>
+          <ol>
+            <li><span class="t">7:30</span><p>The principal checks the nearest monitor. It says the air is <b>Moderate</b>.</p></li>
+            <li><span class="t">7:31</span><p>Ground Truth marks that monitor <span data-pill="flag"></span>: it disagrees with the four around it.</p></li>
+            <li><span class="t">7:31</span><p>The four monitors around the school read <b>Very poor</b>.</p></li>
+            <li><span class="t">7:32</span><p>Assembly moves indoors. The decision is made on a number that adds up.</p></li>
+          </ol>
+        </figure>
+      </div>
+    </section>
+
+    <section class="sec alt spray" id="spray" aria-labelledby="spray-title">
+      <div class="wrap">
+        <div class="sec-head">
+          <div>
+            <span class="label">Why we built it · October 2025</span>
+            <h2 class="h2" id="spray-title"><span class="dim">Spray water around a monitor,</span>and its number drops. The air doesn't.</h2>
+          </div>
+          <p class="sub">In October 2025, water tankers were filmed spraying near a Delhi monitor. Wet the air at the inlet and the dust settles right there, so the monitor reads cleaner than the air the city is breathing.</p>
+        </div>
+        <div class="window spraywin">
+          <div class="chrome"><div class="dots" aria-hidden="true"><i></i><i></i><i></i></div><span class="url">illustration / water tanker at a monitor</span><button class="sp-toggle" id="spray-toggle" type="button" aria-pressed="false">Pause</button></div>
+          <div class="spray-stage" id="spray-stage">
+            <div class="sp-tag me" id="sp-me"><span class="who">This monitor</span><b id="sp-me-v">310</b><small>µg/m³ PM2.5</small><span class="sp-flag" id="sp-flag" hidden><span data-pill="flag"></span></span></div>
+            <div class="sp-tag nb" id="sp-nb"><span class="who">Monitors nearby</span><b id="sp-nb-v">302</b><small>µg/m³ PM2.5</small></div>
+          </div>
+          <div class="sp-foot">
+            <p class="sp-caption" id="sp-caption" aria-live="polite"><b>1 · Before.</b> The monitor and the monitors around it agree: about 310 µg/m³ PM2.5.</p>
+            <ol class="sp-steps" id="sp-steps" aria-label="Steps">
+              <li><button type="button">1</button></li><li><button type="button">2</button></li><li><button type="button">3</button></li><li><button type="button">4</button></li><li><button type="button">5</button></li>
+            </ol>
+          </div>
+        </div>
+        <p class="footnote">An illustration, not footage, and the numbers are examples. We did test whether the monitors named in the October 2025 reports show this pattern. On a method fixed before looking, they didn't stand out (Anand Vihar ranked 6th and Jahangirpuri 13th of 38). So a flag on this site means a monitor's numbers don't add up, never that someone sprayed it.</p>
+      </div>
+    </section>
 
     <section class="sec story" id="story" aria-labelledby="story-title">
       <div class="wrap">
@@ -160,11 +231,10 @@
         <div class="sec-head">
           <div>
             <span class="label">Reading the answers</span>
-            <h2 class="h2" id="meaning-title"><span class="dim">Every monitor gets one of three answers.</span>Here's what to do with each.</h2>
+            <h2 class="h2" id="meaning-title"><span class="dim">Three answers, and an honest "can't tell".</span>Here's what to do with each.</h2>
           </div>
         </div>
         <div class="meanings" id="meanings"></div>
-        <p class="footnote" id="nodata-note"></p>
       </div>
     </section>
 
@@ -190,6 +260,18 @@
             </div>
           </div>
         </div>
+        <div class="roster" id="roster" aria-labelledby="roster-title">
+          <div class="roster-head">
+            <h3 id="roster-title">Every monitor, by area</h3>
+            <div class="roster-search">
+              <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5.25" stroke="currentColor" stroke-width="1.5"/><path d="m11 11 3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              <label class="sr-only" for="roster-q">Filter monitors</label>
+              <input id="roster-q" type="search" placeholder="Filter by name or area, e.g. Noida" autocomplete="off">
+            </div>
+          </div>
+          <div class="filters" id="filters" role="group" aria-label="Show monitors by answer"></div>
+          <div class="areas" id="areas"></div>
+        </div>
       </div>
     </section>
 
@@ -208,6 +290,17 @@
             <h3>Can this reading even be real?</h3>
             <p>Fine dust (PM2.5) is part of all dust (PM10), so it can never be bigger. A monitor that says otherwise, or repeats the same number for hours, is broken.</p>
             <p class="c3-case" id="ex-physics-case"></p>
+            <details class="spec">
+              <summary>Formula and thresholds</summary>
+              <p>Each hour <b>fails</b> if any of these is true:</p>
+              <ul>
+                <li>PM2.5 &gt; 1.05 × PM10 (5% allowed for instrument noise)</li>
+                <li>PM10 outside 1–2000 µg/m³, or PM2.5 outside 1–1500 µg/m³</li>
+                <li>Stuck: the same PM2.5, PM10, NO2 or CO value for 3 or more hours in a row</li>
+              </ul>
+              <p>Over the last 7 days (at least 24 hours with PM data): <b>worth a look</b> if more than 1% of hours fail, <b>doesn't add up</b> if more than 5% fail.</p>
+              <p class="spec-why">Uses PM2.5 and PM10.</p>
+            </details>
           </article>
           <article class="c3">
             <div class="c3-art" id="ex-neighbours"></div>
@@ -215,6 +308,18 @@
             <h3>Does it agree with the monitors around it?</h3>
             <p>Hour by hour, against the four nearest. Daytime air mixes, so some difference is normal; we only flag a monitor that drifts far more than the rest of the city.</p>
             <p class="c3-case" id="ex-neighbours-case"></p>
+            <details class="spec">
+              <summary>Formula and thresholds</summary>
+              <ul>
+                <li><b>Neighbours:</b> the 4 nearest monitors with data within 12 km (great-circle distance). Monitors closer than 0.5 km are skipped, because they are twins on the same site.</li>
+                <li><b>Hourly gap:</b> g = ln(PM10 ÷ median PM10 of the neighbours), when at least 2 neighbours report that hour.</li>
+                <li><b>Daily contrast:</b> d = median g over 11:00–16:59, minus median g over 22:00–05:59 (at least 4 hours each). Its weekly value is the median d over the last 7 days.</li>
+                <li><b>Mixing correction:</b> by day, air mixes higher, so a monitor that reads high at night drifts towards its neighbours. We fit one Theil–Sen line of d against the night gap across the city, and score each monitor's distance from that line.</li>
+                <li><b>Score:</b> robust z = (residual − median) ÷ (1.4826 × MAD) across all monitors. <b>Worth a look</b> at |z| ≥ 2, <b>doesn't add up</b> at |z| ≥ 3.</li>
+                <li><b>Two passes:</b> monitors flagged in the first pass are taken out of everyone's reference and out of the city line in the second.</li>
+              </ul>
+              <p class="spec-why">Uses PM10. Medians and MAD, not means and standard deviations, so one bad hour or one bad monitor can't move the reference.</p>
+            </details>
           </article>
           <article class="c3">
             <div class="c3-art" id="ex-history"></div>
@@ -222,7 +327,23 @@
             <h3>Has it suddenly changed?</h3>
             <p>We compare the last 7 days with the 3 weeks before. A sudden jump against its own past means something changed at that monitor.</p>
             <p class="c3-case" id="ex-history-case"></p>
+            <details class="spec">
+              <summary>Formula and thresholds</summary>
+              <ul>
+                <li>The same daily contrast d as Neighbours, for PM10 (log ratio) and for humidity (percentage points).</li>
+                <li><b>Shift:</b> median d over the last 7 days, minus median d over the 21 days before. This needs at least 4 recent days and 10 earlier days.</li>
+                <li><b>Score:</b> z = shift ÷ robust SD of the earlier 21 days, where robust SD = 1.4826 × MAD. Its floor is 0.02 for PM10 and 1 point for humidity, so a very steady monitor isn't flagged for a tiny change. The larger |z| of the two measures counts.</li>
+                <li><b>Worth a look</b> at |z| ≥ 2, <b>doesn't add up</b> at |z| ≥ 3.</li>
+              </ul>
+              <p class="spec-why">Uses PM10 and humidity. A sudden humidity shift against the neighbours usually means something changed at the monitor itself, such as its inlet, its dryer or where it stands.</p>
+            </details>
           </article>
+        </div>
+        <div class="combine">
+          <h3>How the three checks become one answer</h3>
+          <p>A monitor's answer is the <b>most serious</b> of its three checks. So a single check can flag a monitor, even one about humidity, and the monitor's card always names the check and the measure that raised it. Physics uses PM2.5 and PM10; Neighbours uses PM10; History uses PM10 and humidity.</p>
+          <p>The number you act on is PM2.5, the fine dust that health advice is based on. The checks lean on PM10 because the coarse dust it measures is what dust control and water spraying change the most.</p>
+          <p>When fewer than 2 neighbours, or too few days of data, are available, a check answers <b>not enough data</b> instead of guessing. A monitor gets that answer only if none of its checks can run.</p>
         </div>
       </div>
     </section>
@@ -321,7 +442,7 @@
     </div>
     <div>
       <h4>Project</h4>
-      <ul><li><a href="https://github.com/thegoodengineers/ground-truth">GitHub</a></li><li><a href="?demo=1">60-second tour</a></li><li><a href="#story">How it works</a></li></ul>
+      <ul><li><a href="https://github.com/thegoodengineers/ground-truth">GitHub</a></li><li><a href="?demo=1">60-second tour</a></li><li><a href="#why">Why</a></li><li><a href="#story">How it works</a></li></ul>
     </div>
   </div>
 </footer>
@@ -329,5 +450,6 @@
 <script src="vendor/chart.umd.js"></script>
 <script src="app.js"></script>
 <script type="module" src="scene3d.js"></script>
+<script type="module" src="spray3d.js"></script>
 </body>
 </html>
