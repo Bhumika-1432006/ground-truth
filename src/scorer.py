@@ -61,6 +61,11 @@ def updown(p):
     return "about the same" if abs(p) < 0.5 else f"{abs(p):.0f}% {'higher' if p > 0 else 'lower'}"
 
 
+def last_value(series, hours=3):
+    v = next((x for x in reversed(series[-hours:]) if x is not None), None)
+    return None if v is None else round(v, 2)
+
+
 def hour_keys(now, days):
     return [(now - dt.timedelta(hours=n)).strftime("%Y-%m-%dT%H") for n in range(days * 24 - 1, -1, -1)]
 
@@ -149,7 +154,7 @@ def profile(keys, gap, last_n_hours=None):
     for p in PARAMS:
         g = gap[p][sl]
         by_h = [[] for _ in range(24)]
-        for k, v in zip(ks, g):
+        for k, v in zip(ks, g, strict=False):
             if v is not None:
                 by_h[int(k[11:13])].append(v)
         out[p] = [round(statistics.median(v), 3) if len(v) >= 3 else None for v in by_h]
@@ -255,14 +260,14 @@ def _assemble(keys, now, stations, prepared, result):
         clean = prepared[s["id"]][0]
         ranks = [RANK[c["status"]] for c in checks.values()]
         status = max(ranks)
-        latest = {}
-        for p in PARAMS:
-            v = next((x for x in reversed(clean[p][-3:]) if x is not None), None)
-            latest[p] = None if v is None else round(v, 2)
+        latest = {p: last_value(clean[p]) for p in PARAMS}
+        # what the stations around it read right now: the number to use when this one is in doubt
+        around = {p: med([last_value(prepared[i][0][p]) for i in nb], need=2) for p in ("pm25", "pm10")}
         out_stations.append({
             "id": s["id"], "name": s["name"], "lat": s["lat"], "lon": s["lon"],
             "region": "NCR" if any(w in s["name"] for w in NCR) else "Delhi",
-            "status": next(k for k, v in RANK.items() if v == status), "checks": checks, "latest": latest})
+            "status": next(k for k, v in RANK.items() if v == status), "checks": checks, "latest": latest,
+            "neighbours_latest": {p: None if v is None else round(v, 2) for p, v in around.items()}})
         per_station[s["id"]] = {
             "id": s["id"], "name": s["name"], "neighbours": nb,
             "hour_profile": profile(keys, gap), "hour_profile_7d": profile(keys, gap, RECENT_DAYS * 24),

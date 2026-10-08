@@ -1,6 +1,6 @@
 """Scorer tests. The fixture is real data: 16 north-Delhi stations, 3-30 Nov 2025, from the public OpenAQ archive
 (built with src/backfill.py, then trimmed to these stations and dates)."""
-import copy, datetime as dt, gzip, json, math, os, sys
+import copy, datetime as dt, gzip, json, os, sys
 
 import pytest
 
@@ -96,7 +96,7 @@ def test_daytime_window_matters(data):
 
 def synthetic(pm10, pm25):
     keys = scorer.hour_keys(NOW, 7)
-    return {"1": {"pm10": dict(zip(keys, pm10)), "pm25": dict(zip(keys, pm25))}}, keys
+    return {"1": {"pm10": dict(zip(keys, pm10, strict=False)), "pm25": dict(zip(keys, pm25, strict=False))}}, keys
 
 
 def phys(hourly, keys):
@@ -153,7 +153,8 @@ def test_latest_json_contract(baseline):
     json.dumps(latest)  # serialisable, no NaN
     assert latest["data_through"] == "2025-11-30T23:00:00+05:30"
     for s in latest["stations"]:
-        assert {"id", "name", "lat", "lon", "region", "status", "checks", "latest"} <= set(s)
+        assert {"id", "name", "lat", "lon", "region", "status", "checks", "latest", "neighbours_latest"} <= set(s)
+        assert set(s["neighbours_latest"]) == {"pm25", "pm10"}
         assert s["status"] in STATUSES and s["region"] in {"Delhi", "NCR"}
         assert set(s["checks"]) == {"physics", "neighbours", "history"}
         for c in s["checks"].values():
@@ -173,6 +174,19 @@ def test_station_json_contract(baseline):
             assert all(len(v) == 24 for v in doc[key].values())
         assert len(doc["daily"]) == 28
         assert doc["id"] not in doc["neighbours"]
+
+
+def test_neighbours_latest_is_the_median_of_the_neighbours_now(baseline, data):
+    hourly, stations = data
+    latest, per_station = baseline
+    s = by_id(latest)[8235]
+    keys = scorer.hour_keys(NOW, 28)
+    values = []
+    for i in per_station[8235]["neighbours"]:
+        clean, _ = scorer.prepare(hourly[str(i)], keys)
+        values.append(scorer.last_value(clean["pm25"]))
+    import statistics
+    assert s["neighbours_latest"]["pm25"] == pytest.approx(statistics.median([v for v in values if v is not None]), abs=0.01)
 
 
 def test_copy_never_accuses(baseline):

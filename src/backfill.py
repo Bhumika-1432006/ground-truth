@@ -17,7 +17,10 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 MISSED = []
 
 
-def stations(path=os.path.join(HERE, "stations.tsv")):
+STATIONS_TSV = os.path.join(HERE, "stations.tsv")
+
+
+def stations(path=STATIONS_TSV):
     out = []
     for line in open(path):
         if line.strip():

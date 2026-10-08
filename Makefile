@@ -4,10 +4,23 @@ STACK   ?= ground-truth
 AWS      = aws --profile $(PROFILE) --region $(REGION)
 OUT      = $(AWS) cloudformation describe-stacks --stack-name $(STACK) --query "Stacks[0].Outputs[?OutputKey=='$(1)'].OutputValue" --output text
 
-.PHONY: test deploy stack site seed run url
+.PHONY: setup local test lint deploy stack site seed run url
+
+# One-time: dev tools (tests, lint, video). The backend itself has no dependencies.
+setup:
+	pip install -r requirements-dev.txt
+
+# The site on http://localhost:8000 with the committed sample data; no AWS needed.
+local:
+	rm -rf site/data && cp -r sample/data site/data
+	python -m http.server 8000 -d site
 
 test:
 	pytest -q tests
+
+lint:
+	ruff check src tests video
+	cfn-lint template.yaml
 
 # Everything: infra + code, then the static site.
 deploy: stack site

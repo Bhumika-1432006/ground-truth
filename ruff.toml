@@ -1,0 +1,7 @@
+line-length = 140
+target-version = "py311"
+exclude = ["spike"]
+
+[lint]
+select = ["E", "F", "W", "B"]
+ignore = ["E401", "E731"]  # one-line stdlib imports are the house style

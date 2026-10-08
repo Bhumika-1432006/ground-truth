@@ -4,8 +4,8 @@ Each run:
 1. Load the cache `data/raw/hourly.json` (seeded once from the public archive with backfill.py) and the
    sensor map `data/raw/sensors.json` (fetched from the API the first time a station is seen).
 2. For every station and parameter, fetch raw readings from the last stored hour (minus 2 h, to pick up
-   late data) up to now, and average them into IST hours exactly as the archive backfill does. The free key allows 60 requests/min, so calls are paced; anything left over is
-   picked up next run.
+   late data) up to now, and average them into IST hours exactly as the archive backfill does. The free key
+   allows 60 requests/min, so calls are paced; anything left over is picked up next run.
 3. Trim the cache to 29 days, run the scorer, and write `data/latest.json` + `data/stations/<id>.json`.
 
 Environment: SITE_BUCKET (required), OPENAQ_KEY_PARAM (default /ground-truth/openaq-key), MAX_CALLS (default 300).
