@@ -6,7 +6,7 @@ Each question has a default we proceed on until someone answers. Answer in place
 
 1. **Bhumika has read-only access to the repo.** *Default:* she works from a fork and opens PRs from it. Fix: Chirag raises her to Write (Settings -> Collaborators).
 2. **Ayush isn't a collaborator yet.** *Default:* he helps with QA and review without pushing. Fix: invite AyushVUpadhye with Write.
-3. **The exact deadline hour on Sun 11 Oct.** The schedule page says the hours are "being finalised"; the countdown on 8 Oct pointed to about Sunday evening IST. *Default:* we submit Saturday night, so the hour doesn't matter.
+3. ~~The exact deadline hour on Sun 11 Oct~~ **Default holds — submit Saturday night 11 Oct.** No further action needed regardless of the final deadline hour.
 4. **CloudFront on the account's plan** (carried over from leash#38). *Default:* CloudFront works; if not, the S3 website endpoint (HTTP only), noted in #2.
 
 ## Rules and judging (answered from wemakedevs.org/aws/env, 8 Oct)

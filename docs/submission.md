@@ -1,6 +1,18 @@
 # Submission
 
-The text for the Environmental Hacks form. Every number traces to `spike/RESULTS.md`, `docs/LEARNINGS.md`, a test, or the live data. Fill the three [brackets] on Sunday.
+The text for the Environmental Hacks form. Every number traces to `spike/RESULTS.md`, `docs/LEARNINGS.md`, a test, or the live data.
+
+## Pre-submission checklist (fill before Saturday night)
+
+- [ ] Run `make deploy` — note the CloudFront URL and paste it into **Links** above
+- [ ] Record the demo video and upload to YouTube — paste the URL into **Links**
+- [ ] Publish the Builder Center blog post (issue #38) — paste URL into **Links**
+- [ ] Read `data_through` from the live site — paste it into "The live site" line below
+- [ ] Read the current flag count from the live site — confirm it matches `spike/RESULTS.md`
+- [ ] Check the weekend AWS cost in Cost Explorer (tag `project=ground-truth`) — add to README Cost table
+- [ ] Post a screenshot of the submission confirmation to issue #11
+
+---
 
 **Project name:** Ground Truth
 
@@ -8,7 +20,7 @@ The text for the Environmental Hacks form. Every number traces to `spike/RESULTS
 
 **One line:** Which of Delhi's air-quality numbers can you trust? Every monitor, checked every hour against its neighbours, its own past and physics.
 
-**Links:** live site [CloudFront URL] · repo https://github.com/thegoodengineers/ground-truth · demo video [YouTube URL] · blog [Builder Center URL]
+**Links:** live site [CloudFront URL — fill after `make deploy`] · repo https://github.com/thegoodengineers/ground-truth · demo video [YouTube URL — fill Saturday night] · blog [Builder Center URL — fill after publish]
 
 ---
 
@@ -48,7 +60,7 @@ Plain words instead of scores, and every state shown with a shape and a word, ne
 
 ## Does it work? (The execution)
 
-- **The live site** updates every hour. [Data through: time on the live site at submission.]
+- **The live site** updates every hour. [Data through: fill from `data_through` on the live site at submission.]
 - **The planted test:** we lowered one quiet monitor's daytime PM10 by 40% in real data, one monitor at a time. It was caught 30 times out of 30, and wrongly flagged another monitor only 3 times across all 30 runs.
 - **22 automated tests** run on every change.
 
